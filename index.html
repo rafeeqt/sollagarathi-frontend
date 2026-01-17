@@ -6,15 +6,18 @@
 
   <!-- SEO -->
   <meta name="description" content="தமிழ் சொற்களின் ஆழமான பொருள், வேர், இலக்கிய சான்றுகள் – சொல் அகராதி" />
-  <meta name="Tamil Dictionary, 
-    சொல் அகராதி, 
-    தமிழ் அகராதி, 
-    Tamil Etymology, 
-    Tamil Word Meaning, 
-    Tamil root words
-    சங்க இலக்கிய சொற்கள்,
-    Tamil word history,
-    Tamil nigandu online, Rare Tamil words meaning" content="Tamil Dictionary, சொல் அகராதி, Tamil Words, Sangam Literature, Tamil Etymology" />
+  <meta name="keywords" content="
+Tamil Dictionary,
+சொல் அகராதி,
+தமிழ் அகராதி,
+Tamil Etymology,
+Tamil Word Meaning,
+Tamil root words,
+சங்க இலக்கிய சொற்கள்,
+Tamil word history,
+Tamil nigandu online,
+Rare Tamil words meaning
+">
 
   <!-- Tamil Font -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
@@ -53,30 +56,48 @@
 
   <script>
     async function searchWord() {
-      const word = document.getElementById("word").value;
-      const res = await fetch(
-        "https://sollagarathi-backend.onrender.com/search/" + word
-      );
-         <!-- IF WORD DOES NOT EXISTS  --> 
-      const data = await res.json();
+      const word = document.getElementById("word").value.trim();
+      const resultBox = document.getElementById("result");
 
-    document.getElementById("result").innerText =
-      data.length ? data[0].tamil_word : "இந்த சொல் இன்னும் சேர்க்கப்படவில்லை.";
+      if (!word) {
+        resultBox.innerText = "ஒரு சொல் உள்ளிடுங்கள்.";
+        return;
+      }
+
+      resultBox.innerText = "தேடுகிறது...";
+
+      try {
+        const res = await fetch(
+          "https://sollagarathi-backend.onrender.com/search/" +
+            encodeURIComponent(word)
+        );
+
+        const data = await res.json();
+
+        resultBox.innerText =
+          (Array.isArray(data) && data.length > 0)
+            ? data[0].tamil_word
+            : "இந்த சொல் இன்னும் சேர்க்கப்படவில்லை.";
+      } catch (e) {
+        resultBox.innerText =
+          "சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.";
+      }
     }
   </script>
 
+  <!-- Word of the Day -->
   <script>
-fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
-  .then(r => r.json())
-  .then(d => {
-    if(d?.tamil_word){
-      document.body.insertAdjacentHTML("beforeend",
-        `<h3>இன்றைய சொல்: ${d.tamil_word}</h3>`);
-    }
-  });
-</script>
-
-
-
+    fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.tamil_word) {
+          document.body.insertAdjacentHTML(
+            "beforeend",
+            `<h3>இன்றைய சொல்: ${d.tamil_word}</h3>`
+          );
+        }
+      })
+      .catch(() => {});
+  </script>
 </body>
 </html>
