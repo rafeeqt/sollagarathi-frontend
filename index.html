@@ -19,29 +19,13 @@ Tamil nigandu online,
 Rare Tamil words meaning
 ">
 
-  <!-- Tamil Font -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Noto Serif Tamil', serif;
-      background: #f8f8f8;
-      text-align: center;
-      padding: 50px;
-    }
-    input {
-      font-size: 20px;
-      padding: 10px;
-      width: 60%;
-    }
-    button {
-      font-size: 20px;
-      padding: 10px 20px;
-    }
-    #result {
-      margin-top: 30px;
-      font-size: 22px;
-    }
+    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; text-align:center; padding:50px; }
+    input { font-size:20px; padding:10px; width:60%; }
+    button { font-size:20px; padding:10px 20px; }
+    #result { margin-top:30px; font-size:22px; white-space:pre-wrap; }
   </style>
 </head>
 
@@ -69,18 +53,26 @@ Rare Tamil words meaning
       try {
         const res = await fetch(
           "https://sollagarathi-backend.onrender.com/search/" +
-            encodeURIComponent(word)
+          encodeURIComponent(word)
         );
 
         const data = await res.json();
 
-        resultBox.innerText =
-          (Array.isArray(data) && data.length > 0)
-            ? data[0].tamil_word
-            : "இந்த சொல் இன்னும் சேர்க்கப்படவில்லை.";
+        if (data.source === "local") {
+          resultBox.innerText = "உள்ளூர் தரவுத்தளத்தில் இருந்து பெறப்பட்டது:\n\n" + word;
+        } else if (data.source === "wiktionary") {
+          resultBox.innerText = "இணைய ஆதாரம் (Wiktionary):\n\n" + data.text;
+        } else if (data.source === "agarathi") {
+          resultBox.innerText = data.text;
+        } else if (data.source === "thanithamizh") {
+          resultBox.innerText = data.text;
+        } else if (data.source === "dsal") {
+          resultBox.innerText = data.text;
+        } else {
+          resultBox.innerText = "இந்த சொல் இன்னும் எந்த ஆதாரத்திலும் கிடைக்கவில்லை.";
+        }
       } catch (e) {
-        resultBox.innerText =
-          "சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.";
+        resultBox.innerText = "சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.";
       }
     }
   </script>
