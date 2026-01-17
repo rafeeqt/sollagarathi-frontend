@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <title>சொல் அகராதி | Sollagarathi</title>
+
+  <!-- SEO -->
+  <meta name="description" content="தமிழ் சொற்களின் ஆழமான பொருள், வேர், இலக்கிய சான்றுகள் – சொல் அகராதி" />
+  <meta name="keywords" content="Tamil Dictionary, சொல் அகராதி, Tamil Words, Sangam Literature, Tamil Etymology" />
+
+  <!-- Tamil Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Noto Serif Tamil', serif;
+      background: #f8f8f8;
+      text-align: center;
+      padding: 50px;
+    }
+    input {
+      font-size: 20px;
+      padding: 10px;
+      width: 60%;
+    }
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 22px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>📘 சொல் அகராதி</h1>
+  <p>தமிழ் மொழியின் ஆழமான அகராதி</p>
+
+  <input id="word" placeholder="தமிழ்ச் சொல் உள்ளிடுங்கள்" />
+  <button onclick="searchWord()">தேடு</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function searchWord() {
+      const word = document.getElementById("word").value;
+      const res = await fetch(
+        "https://sollagarathi-backend.onrender.com/search/" + word
+      );
+      const data = await res.json();
+      document.getElementById("result").innerText =
+        data.length ? JSON.stringify(data, null, 2) : "சொல் கிடைக்கவில்லை";
+    }
+  </script>
+</body>
+</html>
