@@ -54,5 +54,17 @@
         data.length ? JSON.stringify(data, null, 2) : "சொல் கிடைக்கவில்லை";
     }
   </script>
+
+  <script>
+fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
+  .then(r => r.json())
+  .then(d => {
+    if(d?.tamil_word){
+      document.body.insertAdjacentHTML("beforeend",
+        `<h3>இன்றைய சொல்: ${d.tamil_word}</h3>`);
+    }
+  });
+</script>
+
 </body>
 </html>
