@@ -74,52 +74,55 @@
   <div id="result" class="results"></div>
 
   <script>
-    async function searchWord() {
-      const word = document.getElementById("word").value.trim();
-      const resultBox = document.getElementById("result");
+  async function searchWord() {
+    const word = document.getElementById("word").value.trim();
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = "";
+
+    if (!word) {
+      resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
+      return;
+    }
+
+    resultBox.innerHTML = `<div class="box">தேடுகிறது...</div>`;
+
+    try {
+      const res = await fetch(
+        "https://sollagarathi-backend.onrender.com/search/" +
+        encodeURIComponent(word)
+      );
+
+      const data = await res.json();
       resultBox.innerHTML = "";
 
-      if (!word) {
-        resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
+      if (!data.results || data.results.length === 0) {
+        resultBox.innerHTML =
+          `<div class="box">இந்த சொல் எந்த ஆதாரத்திலும் கிடைக்கவில்லை.</div>`;
         return;
       }
 
-      resultBox.innerHTML = `<div class="box">தேடுகிறது...</div>`;
-
-      try {
-        const res = await fetch(
-          "https://sollagarathi-backend.onrender.com/search/" +
-          encodeURIComponent(word)
-        );
-
-        const data = await res.json();
-        resultBox.innerHTML = "";
-
-        if (data.source === "none") {
-          resultBox.innerHTML =
-            `<div class="box">இந்த சொல் இன்னும் எந்த ஆதாரத்திலும் கிடைக்கவில்லை.</div>`;
-          return;
-        }
-
+      data.results.forEach(r => {
         let title = "விளக்கம்";
-        if (data.source === "wiktionary") title = "Wiktionary";
-        if (data.source === "agarathi") title = "Agarathi";
-        if (data.source === "thanithamizh") title = "தனித்தமிழ் அகராதி";
-        if (data.source === "dsal") title = "DSAL";
-        if (data.source === "local") title = "உள்ளூர் தரவுத்தளம்";
+        if (r.source === "wiktionary") title = "Wiktionary";
+        if (r.source === "agarathi") title = "Agarathi";
+        if (r.source === "thanithamizh") title = "தனித்தமிழ் அகராதி";
+        if (r.source === "dsal") title = "DSAL";
+        if (r.source === "local") title = "உள்ளூர் தரவுத்தளம்";
 
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">${title}</div>
-            ${data.text || word}
-          </div>
+        const box = document.createElement("div");
+        box.className = "box";
+        box.innerHTML = `
+          <div class="title">${title}</div>
+          ${r.text || ""}
         `;
-      } catch (e) {
-        resultBox.innerHTML =
-          `<div class="box">சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.</div>`;
-      }
+        resultBox.appendChild(box);
+      });
+    } catch (e) {
+      resultBox.innerHTML =
+        `<div class="box">சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.</div>`;
     }
-  </script>
+  }
+</script>
 
   <!-- Bottom Widgets -->
   <div class="widgets">
