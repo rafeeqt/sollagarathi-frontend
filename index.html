@@ -148,18 +148,41 @@
         }
       });
 
-    const scholars = ["உ.வே.சாமிநாதையர்","மறைமலை அடிகள்","பாரதிதாசன்","கம்பன்","திருவள்ளுவர்"];
-    const s = scholars[Math.floor(Math.random()*scholars.length)];
+    const scholars = [
+  "உ.வே.சாமிநாதையர்",
+  "மறைமலை அடிகள்",
+  "பாரதிதாசன்",
+  "சி.வை. தாமோதரம்பிள்ளை",
+  "டி.பி. மீனாட்சி சுந்தரம்",
+  "மு. வரதராசனார்",
+  "கி. வா. ஜகந்நாதன்",
+  "க. நா. சுப்பிரமணியம்",
+  "தேவநேய பாவாணர்"
+];
 
-    fetch("https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro=1&explaintext=1&titles="+encodeURIComponent(s))
-      .then(r=>r.json())
-      .then(j=>{
-        const p = j.query.pages[Object.keys(j.query.pages)[0]];
-        if(p?.extract){
-          document.getElementById("scholarBox").innerHTML =
-            `<b>இன்றைய தமிழ் அறிஞர்</b><br><b>${s}</b><br>${p.extract.substring(0,200)}...`;
-        }
-      });
+const s = scholars[Math.floor(Math.random() * scholars.length)];
+
+fetch(
+  "https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts|info&inprop=url&exintro=1&explaintext=1&titles=" +
+  encodeURIComponent(s)
+)
+  .then(r => r.json())
+  .then(j => {
+    const pages = j.query.pages;
+    const p = pages[Object.keys(pages)[0]];
+
+    if (p?.extract) {
+      document.getElementById("scholarBox").innerHTML =
+        `<b>இன்றைய தமிழ் அறிஞர்</b><br>
+         <b>${s}</b><br>
+         ${p.extract.substring(0, 300)}...<br>
+         <a href="${p.fullurl}" target="_blank">மேலும் வாசிக்க</a>`;
+    } else {
+      document.getElementById("scholarBox").innerHTML =
+        `<b>இன்றைய தமிழ் அறிஞர்</b><br>${s}<br>விவரம் கிடைக்கவில்லை.`;
+    }
+  });
+
   </script>
 </body>
 </html>
