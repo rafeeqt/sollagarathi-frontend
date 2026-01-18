@@ -144,7 +144,7 @@
       .then(d => {
         if (d?.tamil_word) {
           document.getElementById("wordOfDay").innerHTML =
-            `<b>இன்றைய சொல்</b><br>${d.tamil_word}`;
+            `<b>நாளும் ஓர் சொல்</b><br>${d.tamil_word}`;
         }
       });
 
@@ -173,7 +173,7 @@ fetch(
 
     if (p?.extract) {
       document.getElementById("scholarBox").innerHTML =
-        `<b>இன்றைய தமிழ் அறிஞர்</b><br>
+        `<b> தமிழ் அறிஞர்</b><br>
          <b>${s}</b><br>
          ${p.extract.substring(0, 300)}...<br>
          <a href="${p.fullurl}" target="_blank">மேலும் வாசிக்க</a>`;
