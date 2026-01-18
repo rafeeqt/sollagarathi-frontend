@@ -4,45 +4,44 @@
   <meta charset="UTF-8" />
   <title>சொல்லகராதி | Sollagarathi</title>
 
-  <!-- SEO -->
   <meta name="description" content="தமிழ் சொற்களின் ஆழமான பொருள், வேர், இலக்கிய சான்றுகள் – சொல் அகராதி" />
-  <meta name="keywords" content="
-Tamil Dictionary,
-சொல் அகராதி,
-தமிழ் அகராதி,
-Tamil Etymology,
-Tamil Word Meaning,
-Tamil root words,
-சங்க இலக்கிய சொற்கள்,
-Tamil word history,
-Tamil nigandu online,
-Rare Tamil words meaning
-">
+  <meta name="keywords" content="Tamil Dictionary, சொல் அகராதி, தமிழ் அகராதி">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Noto Serif Tamil', serif;
-      background:#f8f8f8;
-      text-align:center;
-      padding:50px;
-    }
-
+    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; text-align:center; padding:40px; }
     input { font-size:20px; padding:10px; width:60%; }
     button { font-size:20px; padding:10px 20px; cursor:pointer; }
 
-    #result {
-      margin-top:30px;
-      font-size:22px;
-      white-space:pre-wrap;
+    .results {
+      margin-top: 30px;
+      display: grid;
+      gap: 15px;
+      text-align: left;
+    }
+
+    .box {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      white-space: pre-wrap;
+      font-size: 18px;
+    }
+
+    .title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #4b2e83;
     }
 
     .widgets {
       margin-top: 50px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
+      text-align: left;
     }
 
     .widget {
@@ -50,14 +49,7 @@ Rare Tamil words meaning
       padding: 15px;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      text-align: left;
       font-size: 16px;
-      line-height: 1.6;
-    }
-
-    .widget b {
-      color: #4b2e83;
-      font-size: 18px;
     }
 
     .donate-btn {
@@ -79,19 +71,20 @@ Rare Tamil words meaning
   <input id="word" placeholder="தமிழ்ச் சொல் உள்ளிடுங்கள்" />
   <button onclick="searchWord()">தேடு</button>
 
-  <div id="result"></div>
+  <div id="result" class="results"></div>
 
   <script>
     async function searchWord() {
       const word = document.getElementById("word").value.trim();
       const resultBox = document.getElementById("result");
+      resultBox.innerHTML = "";
 
       if (!word) {
-        resultBox.innerText = "ஒரு சொல் உள்ளிடுங்கள்.";
+        resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
         return;
       }
 
-      resultBox.innerText = "தேடுகிறது...";
+      resultBox.innerHTML = `<div class="box">தேடுகிறது...</div>`;
 
       try {
         const res = await fetch(
@@ -100,81 +93,71 @@ Rare Tamil words meaning
         );
 
         const data = await res.json();
+        resultBox.innerHTML = "";
 
-        if (data.source === "local") {
-          resultBox.innerText = "உள்ளூர் தரவுத்தளத்தில் இருந்து பெறப்பட்டது:\n\n" + word;
-        } else if (data.source === "wiktionary") {
-          resultBox.innerText = "இணைய ஆதாரம் (Wiktionary):\n\n" + data.text;
-        } else if (data.source === "agarathi") {
-          resultBox.innerText = data.text;
-        } else if (data.source === "thanithamizh") {
-          resultBox.innerText = data.text;
-        } else if (data.source === "dsal") {
-          resultBox.innerText = data.text;
-        } else {
-          resultBox.innerText = "இந்த சொல் இன்னும் எந்த ஆதாரத்திலும் கிடைக்கவில்லை.";
+        if (data.source === "none") {
+          resultBox.innerHTML =
+            `<div class="box">இந்த சொல் இன்னும் எந்த ஆதாரத்திலும் கிடைக்கவில்லை.</div>`;
+          return;
         }
+
+        let title = "விளக்கம்";
+        if (data.source === "wiktionary") title = "Wiktionary";
+        if (data.source === "agarathi") title = "Agarathi";
+        if (data.source === "thanithamizh") title = "தனித்தமிழ் அகராதி";
+        if (data.source === "dsal") title = "DSAL";
+        if (data.source === "local") title = "உள்ளூர் தரவுத்தளம்";
+
+        resultBox.innerHTML = `
+          <div class="box">
+            <div class="title">${title}</div>
+            ${data.text || word}
+          </div>
+        `;
       } catch (e) {
-        resultBox.innerText = "சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.";
+        resultBox.innerHTML =
+          `<div class="box">சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.</div>`;
       }
     }
   </script>
 
-  <!-- Widgets at Bottom -->
+  <!-- Bottom Widgets -->
   <div class="widgets">
     <div class="widget" id="wordOfDay">
-      <b>இன்றைய சொல்</b><br>
-      ஏற்றுகிறது...
+      <b>இன்றைய சொல்</b><br>ஏற்றுகிறது...
     </div>
 
     <div class="widget" id="scholarBox">
-      <b>இன்றைய தமிழ் அறிஞர்</b><br>
-      ஏற்றுகிறது...
+      <b>இன்றைய தமிழ் அறிஞர்</b><br>ஏற்றுகிறது...
     </div>
 
     <div class="widget">
       <b>இந்த முயற்சியை ஆதரிக்க</b><br>
       இந்த அகராதியை வளர்க்க உங்கள் உதவி தேவை.<br>
-      <a class="donate-btn" href="https://buymeacoffee.com/YOURNAME" target="_blank">
-        Donate
-      </a>
+      <a class="donate-btn" href="https://buymeacoffee.com/YOURNAME" target="_blank">Donate</a>
     </div>
   </div>
 
   <script>
-    // Word of the Day
     fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
       .then(r => r.json())
       .then(d => {
-        if (d && d.tamil_word) {
+        if (d?.tamil_word) {
           document.getElementById("wordOfDay").innerHTML =
             `<b>இன்றைய சொல்</b><br>${d.tamil_word}`;
         }
-      })
-      .catch(() => {});
+      });
 
-    // Random Tamil Scholar (Wikipedia)
-    const scholars = [
-      "உ.வே.சாமிநாதையர்",
-      "மறைமலை அடிகள்",
-      "பாவேந்தர் பாரதிதாசன்",
-      "கம்பன்",
-      "திருவள்ளுவர்"
-    ];
+    const scholars = ["உ.வே.சாமிநாதையர்","மறைமலை அடிகள்","பாரதிதாசன்","கம்பன்","திருவள்ளுவர்"];
+    const s = scholars[Math.floor(Math.random()*scholars.length)];
 
-    const s = scholars[Math.floor(Math.random() * scholars.length)];
-
-    fetch(
-      "https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro=1&explaintext=1&titles=" +
-      encodeURIComponent(s)
-    )
-      .then(r => r.json())
-      .then(j => {
-        const pages = j.query.pages;
-        const p = pages[Object.keys(pages)[0]];
-        if (p?.extract) {
+    fetch("https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro=1&explaintext=1&titles="+encodeURIComponent(s))
+      .then(r=>r.json())
+      .then(j=>{
+        const p = j.query.pages[Object.keys(j.query.pages)[0]];
+        if(p?.extract){
           document.getElementById("scholarBox").innerHTML =
-            `<b>இன்றைய தமிழ் அறிஞர்</b><br><b>${s}</b><br>${p.extract.substring(0, 200)}...`;
+            `<b>இன்றைய தமிழ் அறிஞர்</b><br><b>${s}</b><br>${p.extract.substring(0,200)}...`;
         }
       });
   </script>
