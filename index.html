@@ -22,10 +22,53 @@ Rare Tamil words meaning
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; text-align:center; padding:50px; }
+    body {
+      font-family: 'Noto Serif Tamil', serif;
+      background:#f8f8f8;
+      text-align:center;
+      padding:50px;
+    }
+
     input { font-size:20px; padding:10px; width:60%; }
-    button { font-size:20px; padding:10px 20px; }
-    #result { margin-top:30px; font-size:22px; white-space:pre-wrap; }
+    button { font-size:20px; padding:10px 20px; cursor:pointer; }
+
+    #result {
+      margin-top:30px;
+      font-size:22px;
+      white-space:pre-wrap;
+    }
+
+    .widgets {
+      margin-top: 50px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .widget {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: left;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .widget b {
+      color: #4b2e83;
+      font-size: 18px;
+    }
+
+    .donate-btn {
+      display: inline-block;
+      margin-top: 10px;
+      background: #e91e63;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 6px;
+      text-decoration: none;
+    }
   </style>
 </head>
 
@@ -77,19 +120,63 @@ Rare Tamil words meaning
     }
   </script>
 
-  <!-- Word of the Day -->
+  <!-- Widgets at Bottom -->
+  <div class="widgets">
+    <div class="widget" id="wordOfDay">
+      <b>இன்றைய சொல்</b><br>
+      ஏற்றுகிறது...
+    </div>
+
+    <div class="widget" id="scholarBox">
+      <b>இன்றைய தமிழ் அறிஞர்</b><br>
+      ஏற்றுகிறது...
+    </div>
+
+    <div class="widget">
+      <b>இந்த முயற்சியை ஆதரிக்க</b><br>
+      இந்த அகராதியை வளர்க்க உங்கள் உதவி தேவை.<br>
+      <a class="donate-btn" href="https://buymeacoffee.com/YOURNAME" target="_blank">
+        Donate
+      </a>
+    </div>
+  </div>
+
   <script>
+    // Word of the Day
     fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
       .then(r => r.json())
       .then(d => {
         if (d && d.tamil_word) {
-          document.body.insertAdjacentHTML(
-            "beforeend",
-            `<h3>இன்றைய சொல்: ${d.tamil_word}</h3>`
-          );
+          document.getElementById("wordOfDay").innerHTML =
+            `<b>இன்றைய சொல்</b><br>${d.tamil_word}`;
         }
       })
       .catch(() => {});
+
+    // Random Tamil Scholar (Wikipedia)
+    const scholars = [
+      "உ.வே.சாமிநாதையர்",
+      "மறைமலை அடிகள்",
+      "பாவேந்தர் பாரதிதாசன்",
+      "கம்பன்",
+      "திருவள்ளுவர்"
+    ];
+
+    const s = scholars[Math.floor(Math.random() * scholars.length)];
+
+    fetch(
+      "https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro=1&explaintext=1&titles=" +
+      encodeURIComponent(s)
+    )
+      .then(r => r.json())
+      .then(j => {
+        const pages = j.query.pages;
+        const p = pages[Object.keys(pages)[0]];
+        if (p?.extract) {
+          document.getElementById("scholarBox").innerHTML =
+            `<b>இன்றைய தமிழ் அறிஞர்</b><br><b>${s}</b><br>${p.extract.substring(0, 200)}...`;
+        }
+      });
   </script>
 </body>
 </html>
