@@ -75,54 +75,85 @@
 
   <script>
   async function searchWord() {
-    const word = document.getElementById("word").value.trim();
+    const input = document.getElementById("word");
+    const q = input.value.trim();
     const resultBox = document.getElementById("result");
     resultBox.innerHTML = "";
 
-    if (!word) {
+    if (!q) {
       resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
       return;
     }
 
-    resultBox.innerHTML = `<div class="box">தேடுகிறது...</div>`;
+    resultBox.innerHTML = `<div class="box">செயலாக்கப்படுகிறது...</div>`;
 
     try {
-      const res = await fetch(
-        "https://sollagarathi-backend.onrender.com/search/" +
-        encodeURIComponent(word)
-      );
+      const res = await fetch("https://sollagarathi-backend.onrender.com/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q })
+      });
 
       const data = await res.json();
       resultBox.innerHTML = "";
 
-      if (!data.results || data.results.length === 0) {
-        resultBox.innerHTML =
-          `<div class="box">இந்த சொல் எந்த ஆதாரத்திலும் கிடைக்கவில்லை.</div>`;
+      // Case 1: English word → show Tamil choices
+      if (data.stage === "choose") {
+        const list = data.options.map(w =>
+          `<button onclick="finalizeWord('${w}')">${w}</button>`
+        ).join(" ");
+
+        resultBox.innerHTML = `
+          <div class="box">
+            <div class="title">தமிழ்ச் சமமான சொற்கள்</div>
+            ${list}
+          </div>
+        `;
         return;
       }
 
-      data.results.forEach(r => {
-        let title = "விளக்கம்";
-        if (r.source === "wiktionary") title = "Wiktionary";
-        if (r.source === "agarathi") title = "Agarathi";
-        if (r.source === "thanithamizh") title = "தனித்தமிழ் அகராதி";
-        if (r.source === "https://dsal.uchicago.edu/dictionaries/tamil-lex/") title = "TAMIL LEXICON ";
-        if (r.source === "local") title = "உள்ளூர் தரவுத்தளம்";
-
-        const box = document.createElement("div");
-        box.className = "box";
-        box.innerHTML = `
-          <div class="title">${title}</div>
-          ${r.text || ""}
+      // Case 2: Tamil canonical word → show OED entry
+      if (data.stage === "entry") {
+        resultBox.innerHTML = `
+          <div class="box">
+            <div class="title">${data.lemma}</div>
+            ${data.entry}
+          </div>
         `;
-        resultBox.appendChild(box);
-      });
-    } catch (e) {
+      }
+
+    } catch {
       resultBox.innerHTML =
-        `<div class="box">சர்வரை அணுக முடியவில்லை. இணைய இணைப்பைச் சரிபார்க்கவும்.</div>`;
+        `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
     }
   }
+
+  async function finalizeWord(tamilWord) {
+    const resultBox = document.getElementById("result");
+    resultBox.innerHTML = `<div class="box">அகராதி பதிவு உருவாக்கப்படுகிறது...</div>`;
+
+    const res = await fetch("https://sollagarathi-backend.onrender.com/finalize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word: tamilWord })
+    });
+
+    const data = await res.json();
+
+    resultBox.innerHTML = `
+      <div class="box">
+        <div class="title">${data.lemma}</div>
+        ${data.entry}
+      </div>
+    `;
+  }
+
+  // Enter key triggers search
+  document.getElementById("word").addEventListener("keydown", e => {
+    if (e.key === "Enter") searchWord();
+  });
 </script>
+
 
   <!-- Bottom Widgets -->
   <div class="widgets">
