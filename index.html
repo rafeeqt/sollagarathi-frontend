@@ -10,24 +10,40 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; margin:0; padding:30px; }
+    body {
+      font-family: 'Noto Serif Tamil', serif;
+      background:#f8f8f8;
+      margin:0;
+      padding:30px;
+    }
+
     h1, p { text-align:center; }
-    input { font-size:20px; padding:10px; width:60%; }
-    button { font-size:16px; padding:6px 12px; cursor:pointer; }
+
+    input {
+      font-size:20px;
+      padding:10px;
+      width:60%;
+    }
+
+    button {
+      font-size:16px;
+      padding:6px 14px;
+      cursor:pointer;
+    }
 
     .search-area { text-align:center; }
 
     .main {
-      margin-top: 20px;
+      margin-top: 25px;
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 260px 1fr;
       gap: 15px;
     }
 
     .left-pane, .right-pane {
       background:#fff;
       border-radius:8px;
-      padding:12px;
+      padding:14px;
       box-shadow:0 2px 5px rgba(0,0,0,0.1);
     }
 
@@ -41,17 +57,19 @@
       padding:6px;
       border-bottom:1px solid #eee;
       cursor:pointer;
+      font-size:15px;
     }
     .match-item:hover { background:#f2f2f2; }
 
     .box {
       white-space: pre-wrap;
       font-size: 18px;
+      margin-bottom:15px;
     }
 
     .title {
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       color: #4b2e83;
     }
 
@@ -63,22 +81,7 @@
       display:inline-block;
       border-radius:4px;
       background:#fff;
-    }
-
-    .widgets {
-      margin-top: 40px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      text-align: left;
-    }
-
-    .widget {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      font-size: 16px;
+      font-size:15px;
     }
 
     /* Floating Donate */
@@ -91,7 +94,7 @@
       color: #fff;
       padding: 10px 16px;
       border-radius: 20px;
-      font-size: 16px;
+      font-size: 15px;
       text-decoration: none;
       box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
@@ -101,7 +104,7 @@
 
 <body>
 
-<a href="https://buymeacoffee.com/sollagarathi" target="_blank" class="donate-float">
+<a href="https://buymeacoffee.com/YOURNAME" target="_blank" class="donate-float">
   💖 Donate
 </a>
 
@@ -109,17 +112,18 @@
 <p>தமிழ் வாழ்க, வளர்க, வெல்க</p>
 
 <div class="search-area">
-  <input id="word" placeholder="தமிழ்ச் சொல் உள்ளிடுங்கள்" />
+  <input id="word" placeholder="தமிழ்ச் சொல் / English word" />
   <div id="suggestions"></div>
+  <br><br>
   <button onclick="searchWord()">தேடு</button>
 </div>
 
 <div class="main">
   <div class="left-pane">
-    <h3>தொடர்புடைய சொற்கள்</h3>
-    <div class="match-item">— (வருங்காலத்தில்)</div>
-    <div class="match-item">Derived forms</div>
-    <div class="match-item">Variants</div>
+    <h3>தொடர்புடைய தகவல்</h3>
+    <div class="match-item">Canonical lemma</div>
+    <div class="match-item">Derived / Variants</div>
+    <div class="match-item">Evidence sources</div>
   </div>
 
   <div class="right-pane" id="result"></div>
@@ -140,15 +144,20 @@ async function searchWord() {
   resultBox.innerHTML = `<div class="box">செயலாக்கப்படுகிறது...</div>`;
 
   try {
-    const res = await fetch("https://sollagarathi-backend.onrender.com/resolve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q })
-    });
+    /* 1️⃣ Resolve stage (English/Tamil canonical workflow) */
+    const res = await fetch(
+      "https://sollagarathi-backend.onrender.com/resolve",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q })
+      }
+    );
 
     const data = await res.json();
     resultBox.innerHTML = "";
 
+    /* English → Tamil choices */
     if (data.stage === "choose") {
       const list = data.options.map(w =>
         `<button onclick="finalizeWord('${w}')">${w}</button>`
@@ -163,8 +172,9 @@ async function searchWord() {
       return;
     }
 
+    /* Canonical entry */
     if (data.stage === "entry") {
-      resultBox.innerHTML = `
+      resultBox.innerHTML += `
         <div class="box">
           <div class="title">${data.lemma}</div>
           ${data.entry}
@@ -172,20 +182,43 @@ async function searchWord() {
       `;
     }
 
-  } catch {
-    resultBox.innerHTML = `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
+    /* 2️⃣ Evidence layer – multi-source dictionaries */
+    const multi = await fetch(
+      "https://sollagarathi-backend.onrender.com/search/" +
+      encodeURIComponent(q)
+    );
+    const multiData = await multi.json();
+
+    if (multiData.results && multiData.results.length) {
+      multiData.results.forEach(r => {
+        resultBox.innerHTML += `
+          <div class="box">
+            <div class="title">${r.source}</div>
+            ${r.text}
+          </div>
+        `;
+      });
+    }
+
+  } catch (e) {
+    resultBox.innerHTML =
+      `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
   }
 }
 
+/* Finalize master entry */
 async function finalizeWord(tamilWord) {
   const resultBox = document.getElementById("result");
   resultBox.innerHTML = `<div class="box">அகராதி பதிவு உருவாக்கப்படுகிறது...</div>`;
 
-  const res = await fetch("https://sollagarathi-backend.onrender.com/finalize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ word: tamilWord })
-  });
+  const res = await fetch(
+    "https://sollagarathi-backend.onrender.com/finalize",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word: tamilWord })
+    }
+  );
 
   const data = await res.json();
 
@@ -197,10 +230,12 @@ async function finalizeWord(tamilWord) {
   `;
 }
 
+/* Enter key */
 document.getElementById("word").addEventListener("keydown", e => {
   if (e.key === "Enter") searchWord();
 });
 
+/* Transliteration suggestions */
 const input = document.getElementById("word");
 const sugBox = document.getElementById("suggestions");
 
@@ -211,32 +246,3 @@ function isTamil(text) {
 input.addEventListener("input", async () => {
   const val = input.value.trim();
   sugBox.innerHTML = "";
-  if (!val || isTamil(val)) return;
-
-  try {
-    const r = await fetch(
-      "https://sollagarathi-backend.onrender.com/transliterate",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: val })
-      }
-    );
-
-    const j = await r.json();
-    if (j.options && j.options.length) {
-      sugBox.innerHTML = j.options
-        .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
-        .join("");
-    }
-  } catch {}
-});
-
-function pickTamil(word) {
-  input.value = word;
-  sugBox.innerHTML = "";
-}
-</script>
-
-</body>
-</html>
