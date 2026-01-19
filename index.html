@@ -2,7 +2,7 @@
 <html lang="ta">
 <head>
   <meta charset="UTF-8" />
-  <title>சொல் அகராதி | Sol agarathi</title>
+  <title>சொல் அகராதி | Sollagarathi</title>
 
   <meta name="description" content="தமிழ் சொற்களின் ஆழமான பொருள், வேர், இலக்கிய சான்றுகள் – சொல் அகராதி" />
   <meta name="keywords" content="Tamil Dictionary, சொல் அகராதி, தமிழ் அகராதி">
@@ -10,22 +10,41 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; text-align:center; padding:40px; }
+    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; margin:0; padding:30px; }
+    h1, p { text-align:center; }
     input { font-size:20px; padding:10px; width:60%; }
-    button { font-size:20px; padding:10px 20px; cursor:pointer; }
+    button { font-size:16px; padding:6px 12px; cursor:pointer; }
 
-    .results {
-      margin-top: 30px;
+    .search-area { text-align:center; }
+
+    .main {
+      margin-top: 20px;
       display: grid;
+      grid-template-columns: 280px 1fr;
       gap: 15px;
-      text-align: left;
     }
 
+    .left-pane, .right-pane {
+      background:#fff;
+      border-radius:8px;
+      padding:12px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .left-pane h3 {
+      margin-top:0;
+      font-size:16px;
+      color:#4b2e83;
+    }
+
+    .match-item {
+      padding:6px;
+      border-bottom:1px solid #eee;
+      cursor:pointer;
+    }
+    .match-item:hover { background:#f2f2f2; }
+
     .box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       white-space: pre-wrap;
       font-size: 18px;
     }
@@ -47,7 +66,7 @@
     }
 
     .widgets {
-      margin-top: 50px;
+      margin-top: 40px;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
@@ -62,215 +81,162 @@
       font-size: 16px;
     }
 
-    .donate-btn {
-      display: inline-block;
-      margin-top: 10px;
+    /* Floating Donate */
+    .donate-float {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 9999;
       background: #e91e63;
-      color: white;
-      padding: 8px 15px;
-      border-radius: 6px;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 16px;
       text-decoration: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
+    .donate-float:hover { background:#c2185b; }
   </style>
 </head>
 
 <body>
-  <h1> சொல் அகராதி</h1>
-  <p>தமிழ் வாழ்க, வளர்க, வெல்க</p>
 
+<a href="https://buymeacoffee.com/YOURNAME" target="_blank" class="donate-float">
+  💖 Donate
+</a>
+
+<h1>சொல் அகராதி</h1>
+<p>தமிழ் வாழ்க, வளர்க, வெல்க</p>
+
+<div class="search-area">
   <input id="word" placeholder="தமிழ்ச் சொல் உள்ளிடுங்கள்" />
   <div id="suggestions"></div>
   <button onclick="searchWord()">தேடு</button>
+</div>
 
-  <div id="result" class="results"></div>
+<div class="main">
+  <div class="left-pane">
+    <h3>தொடர்புடைய சொற்கள்</h3>
+    <div class="match-item">— (வருங்காலத்தில்)</div>
+    <div class="match-item">Derived forms</div>
+    <div class="match-item">Variants</div>
+  </div>
 
-  <script>
-  async function searchWord() {
-    const input = document.getElementById("word");
-    const q = input.value.trim();
-    const resultBox = document.getElementById("result");
-    resultBox.innerHTML = "";
+  <div class="right-pane" id="result"></div>
+</div>
 
-    if (!q) {
-      resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
-      return;
-    }
+<script>
+async function searchWord() {
+  const input = document.getElementById("word");
+  const q = input.value.trim();
+  const resultBox = document.getElementById("result");
+  resultBox.innerHTML = "";
 
-    resultBox.innerHTML = `<div class="box">செயலாக்கப்படுகிறது...</div>`;
-
-    try {
-      const res = await fetch("https://sollagarathi-backend.onrender.com/resolve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q })
-      });
-
-      const data = await res.json();
-      resultBox.innerHTML = "";
-
-      if (data.stage === "choose") {
-        const list = data.options.map(w =>
-          `<button onclick="finalizeWord('${w}')">${w}</button>`
-        ).join(" ");
-
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">தமிழ்ச் சமமான சொற்கள்</div>
-            ${list}
-          </div>
-        `;
-        return;
-      }
-
-      if (data.stage === "entry") {
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">${data.lemma}</div>
-            ${data.entry}
-          </div>
-        `;
-      }
-
-    } catch {
-      resultBox.innerHTML =
-        `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
-    }
+  if (!q) {
+    resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
+    return;
   }
 
-  async function finalizeWord(tamilWord) {
-    const resultBox = document.getElementById("result");
-    resultBox.innerHTML = `<div class="box">அகராதி பதிவு உருவாக்கப்படுகிறது...</div>`;
+  resultBox.innerHTML = `<div class="box">செயலாக்கப்படுகிறது...</div>`;
 
-    const res = await fetch("https://sollagarathi-backend.onrender.com/finalize", {
+  try {
+    const res = await fetch("https://sollagarathi-backend.onrender.com/resolve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ word: tamilWord })
+      body: JSON.stringify({ query: q })
     });
 
     const data = await res.json();
+    resultBox.innerHTML = "";
 
-    resultBox.innerHTML = `
-      <div class="box">
-        <div class="title">${data.lemma}</div>
-        ${data.entry}
-      </div>
-    `;
+    if (data.stage === "choose") {
+      const list = data.options.map(w =>
+        `<button onclick="finalizeWord('${w}')">${w}</button>`
+      ).join(" ");
+
+      resultBox.innerHTML = `
+        <div class="box">
+          <div class="title">தமிழ்ச் சமமான சொற்கள்</div>
+          ${list}
+        </div>
+      `;
+      return;
+    }
+
+    if (data.stage === "entry") {
+      resultBox.innerHTML = `
+        <div class="box">
+          <div class="title">${data.lemma}</div>
+          ${data.entry}
+        </div>
+      `;
+    }
+
+  } catch {
+    resultBox.innerHTML = `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
   }
+}
 
-  document.getElementById("word").addEventListener("keydown", e => {
-    if (e.key === "Enter") searchWord();
+async function finalizeWord(tamilWord) {
+  const resultBox = document.getElementById("result");
+  resultBox.innerHTML = `<div class="box">அகராதி பதிவு உருவாக்கப்படுகிறது...</div>`;
+
+  const res = await fetch("https://sollagarathi-backend.onrender.com/finalize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ word: tamilWord })
   });
 
-  const input = document.getElementById("word");
-  const sugBox = document.getElementById("suggestions");
+  const data = await res.json();
 
-  function isTamil(text) {
-    return /[\u0B80-\u0BFF]/.test(text);
-  }
-
-  input.addEventListener("input", async () => {
-    const val = input.value.trim();
-    sugBox.innerHTML = "";
-
-    if (!val || isTamil(val)) return;
-
-    try {
-      const r = await fetch(
-        "https://sollagarathi-backend.onrender.com/transliterate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: val })
-        }
-      );
-
-      const j = await r.json();
-
-      if (j.options && j.options.length) {
-        sugBox.innerHTML = j.options
-          .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
-          .join("");
-      }
-    } catch {}
-  });
-
-  function pickTamil(word) {
-    input.value = word;
-    sugBox.innerHTML = "";
-  }
-  </script>
-
-  <!-- Bottom Widgets -->
-  <div class="widgets">
-    <div class="widget" id="wordOfDay">
-      <b>இன்றைய சொல்</b><br>ஏற்றுகிறது...
+  resultBox.innerHTML = `
+    <div class="box">
+      <div class="title">${data.lemma}</div>
+      ${data.entry}
     </div>
+  `;
+}
 
-    <div class="widget" id="scholarBox">
-      <b>இன்றைய தமிழ் அறிஞர்</b><br>ஏற்றுகிறது...
-    </div>
+document.getElementById("word").addEventListener("keydown", e => {
+  if (e.key === "Enter") searchWord();
+});
 
-    <div class="widget">
-      <b>இந்த முயற்சியை ஆதரிக்க</b><br>
-      இந்த அகராதியை வளர்க்க உங்கள் உதவி தேவை.<br>
-      <a class="donate-btn" href="https://buymeacoffee.com/YOURNAME" target="_blank">Donate</a>
-    </div>
-  </div>
+const input = document.getElementById("word");
+const sugBox = document.getElementById("suggestions");
 
-  <script>
-  // Word of the Day
-  fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
-    .then(r => r.json())
-    .then(d => {
-      if (d?.tamil_word) {
-        document.getElementById("wordOfDay").innerHTML =
-          `<b>நாளும் ஓர் சொல்</b><br>${d.tamil_word}`;
+function isTamil(text) {
+  return /[\u0B80-\u0BFF]/.test(text);
+}
+
+input.addEventListener("input", async () => {
+  const val = input.value.trim();
+  sugBox.innerHTML = "";
+  if (!val || isTamil(val)) return;
+
+  try {
+    const r = await fetch(
+      "https://sollagarathi-backend.onrender.com/transliterate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: val })
       }
-    });
+    );
 
-  // Scholar Widget
-  const scholars = [
-    "உ. வே. சாமிநாதையர்",
-    "மறைமலை அடிகள்",
-    "சி. வை. தாமோதரம் பிள்ளை",
-    "ஆறுமுக நாவலர்",
-    "பி. எஸ். சுப்பிரமணிய சாஸ்திரி",
-    "காமில் சுவெலபில்",
-    "அ. தட்சிணாமூர்த்தி",
-    "கா. சிவத்தம்பி",
-    "மு. இளங்கோவன்",
-    "ப. விஜயகுமார்",
-    "மு. வரதராசனார்",
-    "தேவநேயப் பாவாணர்",
-    "கி. வா. ஜகந்நாதன்",
-    "வி. சி. குலந்தைசாமி",
-    "சோமசுந்தர பாரதி",
-    "இரா. நாகசாமி",
-    "ம. சோ. விக்டர்"
-  ];
+    const j = await r.json();
+    if (j.options && j.options.length) {
+      sugBox.innerHTML = j.options
+        .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
+        .join("");
+    }
+  } catch {}
+});
 
-  const s = scholars[Math.floor(Math.random() * scholars.length)];
+function pickTamil(word) {
+  input.value = word;
+  sugBox.innerHTML = "";
+}
+</script>
 
-  fetch(
-    "https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts|info&inprop=url&exintro=1&explaintext=1&titles=" +
-    encodeURIComponent(s)
-  )
-    .then(r => r.json())
-    .then(j => {
-      const pages = j.query.pages;
-      const p = pages[Object.keys(pages)[0]];
-
-      if (p?.extract) {
-        document.getElementById("scholarBox").innerHTML =
-          `<b>இன்றைய தமிழ் அறிஞர்</b><br>
-           <b>${s}</b><br>
-           ${p.extract.substring(0, 300)}...<br>
-           <a href="${p.fullurl}" target="_blank">மேலும் வாசிக்க</a>`;
-      } else {
-        document.getElementById("scholarBox").innerHTML =
-          `<b>இன்றைய தமிழ் அறிஞர்</b><br>${s}<br>விவரம் கிடைக்கவில்லை.`;
-      }
-    });
-  </script>
 </body>
 </html>
