@@ -214,6 +214,29 @@ function isTamil(t){ return /[\u0B80-\u0BFF]/.test(t); }
 
 word.addEventListener("input",async()=>{
   suggestions.innerHTML="";
+  // 🇬🇧 English → Tamil meaning suggestions
+if (!isTamil(val)) {
+  try {
+    const r = await fetch(
+      "https://sollagarathi-backend.onrender.com/suggest/english",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: val })
+      }
+    );
+
+    const j = await r.json();
+
+    if (j.options && j.options.length) {
+      sugBox.innerHTML = j.options
+        .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
+        .join("");
+      return; // ⛔ stop here, don't fall into transliterate
+    }
+  } catch {}
+}
+
   if(!word.value || isTamil(word.value)) return;
   const r = await fetch("https://sollagarathi-backend.onrender.com/transliterate",{
     method:"POST", headers:{ "Content-Type":"application/json" },
