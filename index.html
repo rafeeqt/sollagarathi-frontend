@@ -214,7 +214,17 @@ function isTamil(t){ return /[\u0B80-\u0BFF]/.test(t); }
 
 word.addEventListener("input",async()=>{
   suggestions.innerHTML="";
-  // 🇬🇧 English → Tamil meaning suggestions
+
+  if(!word.value || isTamil(word.value)) return;
+  const r = await fetch("https://sollagarathi-backend.onrender.com/transliterate",{
+    method:"POST", headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ text:word.value })
+  });
+  const j = await r.json();
+  suggestions.innerHTML = (j.options||[]).map(o=>`<span onclick="word.value='${o}';suggestions.innerHTML=''">${o}</span>`).join("");
+});
+
+    // 🇬🇧 English → Tamil meaning suggestions
 if (!isTamil(val)) {
   try {
     const r = await fetch(
@@ -236,15 +246,6 @@ if (!isTamil(val)) {
     }
   } catch {}
 }
-
-  if(!word.value || isTamil(word.value)) return;
-  const r = await fetch("https://sollagarathi-backend.onrender.com/transliterate",{
-    method:"POST", headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ text:word.value })
-  });
-  const j = await r.json();
-  suggestions.innerHTML = (j.options||[]).map(o=>`<span onclick="word.value='${o}';suggestions.innerHTML=''">${o}</span>`).join("");
-});
 
 /* ---------- Widgets ---------- */
 fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
