@@ -200,7 +200,24 @@
   }
   </script>
 
-  <!-- Bottom Widgets  
+  <!-- Bottom Widgets -->
+  <div class="widgets">
+    <div class="widget" id="wordOfDay">
+      <b>இன்றைய சொல்</b><br>ஏற்றுகிறது...
+    </div>
+
+    <div class="widget" id="scholarBox">
+      <b>இன்றைய தமிழ் அறிஞர்</b><br>ஏற்றுகிறது...
+    </div>
+
+    <div class="widget">
+      <b>இந்த முயற்சியை ஆதரிக்க</b><br>
+      இந்த அகராதியை வளர்க்க உங்கள் உதவி தேவை.<br>
+      <a class="donate-btn" href="https://buymeacoffee.com/YOURNAME" target="_blank">Donate</a>
+    </div>
+  </div>
+
+  <script>
   // Word of the Day
   fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
     .then(r => r.json())
@@ -254,6 +271,6 @@
           `<b>இன்றைய தமிழ் அறிஞர்</b><br>${s}<br>விவரம் கிடைக்கவில்லை.`;
       }
     });
-
+  </script>
 </body>
 </html>
