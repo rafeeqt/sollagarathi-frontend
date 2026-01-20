@@ -1,276 +1,48 @@
 <!DOCTYPE html>
 <html lang="ta">
 <head>
-  <meta charset="UTF-8" />
-  <title>சொல் அகராதி | Sol agarathi</title>
-
-  <meta name="description" content="தமிழ் சொற்களின் ஆழமான பொருள், வேர், இலக்கிய சான்றுகள் – சொல் அகராதி" />
-  <meta name="keywords" content="Tamil Dictionary, சொல் அகராதி, தமிழ் அகராதி">
-
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
-
-  <style>
-    body { font-family: 'Noto Serif Tamil', serif; background:#f8f8f8; text-align:center; padding:40px; }
-    input { font-size:20px; padding:10px; width:60%; }
-    button { font-size:20px; padding:10px 20px; cursor:pointer; }
-
-    .results {
-      margin-top: 30px;
-      display: grid;
-      gap: 15px;
-      text-align: left;
-    }
-
-    .box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      white-space: pre-wrap;
-      font-size: 18px;
-    }
-
-    .title {
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: #4b2e83;
-    }
-
-    #suggestions span {
-      cursor:pointer;
-      padding:4px 8px;
-      border:1px solid #ccc;
-      margin:3px;
-      display:inline-block;
-      border-radius:4px;
-      background:#fff;
-    }
-
-    .widgets {
-      margin-top: 50px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      text-align: left;
-    }
-
-    .widget {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      font-size: 16px;
-    }
-
-    .donate-btn {
-      display: inline-block;
-      margin-top: 10px;
-      background: #e91e63;
-      color: white;
-      padding: 8px 15px;
-      border-radius: 6px;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sollagarathi | சொல்லகராதி</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <h1> சொல் அகராதி</h1>
-  <p>தமிழ் வாழ்க, வளர்க, வெல்க</p>
+    <header class="app-header">
+        <div class="search-section">
+            <div class="input-wrapper">
+                <input type="text" id="search-input" placeholder="Search (virtue / aram / அறம்)..." autocomplete="off">
+                <ul id="suggestion-dropdown" class="dropdown hidden"></ul>
+            </div>
+            <button id="search-trigger">தேடு</button>
+        </div>
+        <div class="header-actions">
+            <a href="https://pay.link" class="donate-btn-float">🎁 Donate</a>
+        </div>
+    </header>
 
-  <input id="word" placeholder="தமிழ்ச் சொல் உள்ளிடுங்கள்" />
-  <div id="suggestions"></div>
-  <button onclick="searchWord()">தேடு</button>
+    <div class="main-container">
+        <nav class="left-index" id="left-pane">
+            <div class="pane-label">அகவரிசை (Index)</div>
+            <ul id="word-index-list">
+                </ul>
+        </nav>
 
-  <div id="result" class="results"></div>
-
-  <script>
-  async function searchWord() {
-    const input = document.getElementById("word");
-    const q = input.value.trim();
-    const resultBox = document.getElementById("result");
-    resultBox.innerHTML = "";
-
-    if (!q) {
-      resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
-      return;
-    }
-
-    resultBox.innerHTML = `<div class="box">செயலாக்கப்படுகிறது...</div>`;
-
-    try {
-      const res = await fetch("https://sollagarathi-backend.onrender.com/resolve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q })
-      });
-
-      const data = await res.json();
-      resultBox.innerHTML = "";
-
-      if (data.stage === "choose") {
-        const list = data.options.map(w =>
-          `<button onclick="finalizeWord('${w}')">${w}</button>`
-        ).join(" ");
-
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">தமிழ்ச் சமமான சொற்கள்</div>
-            ${list}
-          </div>
-        `;
-        return;
-      }
-
-      if (data.stage === "entry") {
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">${data.lemma}</div>
-            ${data.entry}
-          </div>
-        `;
-      }
-
-    } catch {
-      resultBox.innerHTML =
-        `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
-    }
-  }
-
-  async function finalizeWord(tamilWord) {
-    const resultBox = document.getElementById("result");
-    resultBox.innerHTML = `<div class="box">அகராதி பதிவு உருவாக்கப்படுகிறது...</div>`;
-
-    const res = await fetch("https://sollagarathi-backend.onrender.com/finalize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ word: tamilWord })
-    });
-
-    const data = await res.json();
-
-    resultBox.innerHTML = `
-      <div class="box">
-        <div class="title">${data.lemma}</div>
-        ${data.entry}
-      </div>
-    `;
-  }
-
-  document.getElementById("word").addEventListener("keydown", e => {
-    if (e.key === "Enter") searchWord();
-  });
-
-  const input = document.getElementById("word");
-  const sugBox = document.getElementById("suggestions");
-
-  function isTamil(text) {
-    return /[\u0B80-\u0BFF]/.test(text);
-  }
-
-  input.addEventListener("input", async () => {
-    const val = input.value.trim();
-    sugBox.innerHTML = "";
-
-    if (!val || isTamil(val)) return;
-
-    try {
-      const r = await fetch(
-        "https://sollagarathi-backend.onrender.com/transliterate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: val })
-        }
-      );
-
-      const j = await r.json();
-
-      if (j.options && j.options.length) {
-        sugBox.innerHTML = j.options
-          .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
-          .join("");
-      }
-    } catch {}
-  });
-
-  function pickTamil(word) {
-    input.value = word;
-    sugBox.innerHTML = "";
-  }
-  </script>
-
-  <!-- Bottom Widgets -->
-  <div class="widgets">
-    <div class="widget" id="wordOfDay">
-      <b>இன்றைய சொல்</b><br>ஏற்றுகிறது...
+        <main class="content-entry" id="main-display">
+            <div id="entry-view">
+                <div class="placeholder-text">தேட விரும்பும் சொல்லை உள்ளிடவும்...</div>
+            </div>
+        </main>
     </div>
 
-    <div class="widget" id="scholarBox">
-      <b>இன்றைய தமிழ் அறிஞர்</b><br>ஏற்றுகிறது...
-    </div>
+    <footer class="widget-bar">
+        <div class="widget" id="wod">
+            <strong>இன்றைய சொல்:</strong> <span id="word-of-day-text">அறம்</span>
+        </div>
+        <div class="widget" id="scholar">
+            <strong>அறிஞர்:</strong> <span id="scholar-name">உ. வே. சாமிநாதையர்</span>
+        </div>
+    </footer>
 
-    <div class="widget">
-      <b>இந்த முயற்சியை ஆதரிக்க</b><br>
-      இந்த அகராதியை வளர்க்க உங்கள் உதவி தேவை.<br>
-      <a class="donate-btn" href="https://buymeacoffee.com/YOURNAME" target="_blank">Donate</a>
-    </div>
-  </div>
-
-  <script>
-  // Word of the Day
-  fetch("https://sollagarathi-backend.onrender.com/word-of-the-day")
-    .then(r => r.json())
-    .then(d => {
-      if (d?.tamil_word) {
-        document.getElementById("wordOfDay").innerHTML =
-          `<b>நாளும் ஓர் சொல்</b><br>${d.tamil_word}`;
-      }
-    });
-
-  // Scholar Widget
-  const scholars = [
-    "உ. வே. சாமிநாதையர்",
-    "மறைமலை அடிகள்",
-    "சி. வை. தாமோதரம் பிள்ளை",
-    "ஆறுமுக நாவலர்",
-    "பி. எஸ். சுப்பிரமணிய சாஸ்திரி",
-    "காமில் சுவெலபில்",
-    "அ. தட்சிணாமூர்த்தி",
-    "கா. சிவத்தம்பி",
-    "மு. இளங்கோவன்",
-    "ப. விஜயகுமார்",
-    "மு. வரதராசனார்",
-    "தேவநேயப் பாவாணர்",
-    "கி. வா. ஜகந்நாதன்",
-    "வி. சி. குலந்தைசாமி",
-    "சோமசுந்தர பாரதி",
-    "இரா. நாகசாமி",
-    "ம. சோ. விக்டர்"
-  ];
-
-  const s = scholars[Math.floor(Math.random() * scholars.length)];
-
-  fetch(
-    "https://ta.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts|info&inprop=url&exintro=1&explaintext=1&titles=" +
-    encodeURIComponent(s)
-  )
-    .then(r => r.json())
-    .then(j => {
-      const pages = j.query.pages;
-      const p = pages[Object.keys(pages)[0]];
-
-      if (p?.extract) {
-        document.getElementById("scholarBox").innerHTML =
-          `<b>இன்றைய தமிழ் அறிஞர்</b><br>
-           <b>${s}</b><br>
-           ${p.extract.substring(0, 300)}...<br>
-           <a href="${p.fullurl}" target="_blank">மேலும் வாசிக்க</a>`;
-      } else {
-        document.getElementById("scholarBox").innerHTML =
-          `<b>இன்றைய தமிழ் அறிஞர்</b><br>${s}<br>விவரம் கிடைக்கவில்லை.`;
-      }
-    });
-  </script>
+    <script src="app.js"></script>
 </body>
 </html>
