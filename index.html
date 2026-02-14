@@ -85,8 +85,13 @@
   <div id="result" class="results"></div>
 
   <script>
+  // 1. Core Variables
+  const input = document.getElementById("word");
+  const sugBox = document.getElementById("suggestions");
+  let currentTopSuggestion = ""; 
+
+  // 2. Search Logic
   async function searchWord() {
-    const input = document.getElementById("word");
     const q = input.value.trim();
     const resultBox = document.getElementById("result");
     resultBox.innerHTML = "";
@@ -113,27 +118,15 @@
           `<button onclick="finalizeWord('${w}')">${w}</button>`
         ).join(" ");
 
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">தமிழ்ச் சமமான சொற்கள்</div>
-            ${list}
-          </div>
-        `;
+        resultBox.innerHTML = `<div class="box"><div class="title">தமிழ்ச் சமமான சொற்கள்</div>${list}</div>`;
         return;
       }
 
       if (data.stage === "entry") {
-        resultBox.innerHTML = `
-          <div class="box">
-            <div class="title">${data.lemma}</div>
-            ${data.entry}
-          </div>
-        `;
+        resultBox.innerHTML = `<div class="box"><div class="title">${data.lemma}</div>${data.entry}</div>`;
       }
-
     } catch {
-      resultBox.innerHTML =
-        `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
+      resultBox.innerHTML = `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
     }
   }
 
@@ -148,33 +141,14 @@
     });
 
     const data = await res.json();
-
-    resultBox.innerHTML = `
-      <div class="box">
-        <div class="title">${data.lemma}</div>
-        ${data.entry}
-      </div>
-    `;
+    resultBox.innerHTML = `<div class="box"><div class="title">${data.lemma}</div>${data.entry}</div>`;
   }
 
-  document.getElementById("word").addEventListener("keydown", e => {
-    if (e.key === "Enter") searchWord();
-  });
-
-  const input = document.getElementById("word");
-  const sugBox = document.getElementById("suggestions");
-
-  function isTamil(text) {
-    return /[\u0B80-\u0BFF]/.test(text);
-  }
-
-  const input = document.getElementById("word");
-  const sugBox = document.getElementById("suggestions");
-  let currentTopSuggestion = ""; // To track the #1 Google result
-
+  // 3. Google Input Tool Logic (The "Google Feel")
   input.addEventListener("input", async () => {
-    const val = input.value.split(" ").pop(); // Get only the last word typed
+    const val = input.value.split(" ").pop(); 
     
+    // Only transliterate if it is English
     if (!val || /[\u0B80-\u0BFF]/.test(val)) {
       sugBox.innerHTML = "";
       currentTopSuggestion = "";
@@ -191,7 +165,7 @@
       const j = await r.json();
 
       if (j.options && j.options.length) {
-        currentTopSuggestion = j.options[0]; // Set the first option as the "spacebar" target
+        currentTopSuggestion = j.options[0]; 
         sugBox.innerHTML = j.options
           .map(w => `<span onclick="pickTamil('${w}')" style="cursor:pointer; padding:5px; border:1px solid #ccc; margin:2px; display:inline-block; border-radius:4px;">${w}</span>`)
           .join("");
@@ -199,13 +173,15 @@
     } catch {}
   });
 
-  // This part makes it work like Google (Spacebar conversion)
+  // Spacebar Auto-Convert
   input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchWord();
+    
     if (e.key === " " && currentTopSuggestion) {
-      e.preventDefault(); // Stop the space for a millisecond
+      e.preventDefault(); 
       const words = input.value.split(" ");
-      words[words.length - 1] = currentTopSuggestion; // Swap English for Tamil
-      input.value = words.join(" ") + " "; // Add the space back
+      words[words.length - 1] = currentTopSuggestion; 
+      input.value = words.join(" ") + " "; 
       sugBox.innerHTML = "";
       currentTopSuggestion = "";
     }
@@ -219,7 +195,7 @@
     currentTopSuggestion = "";
     input.focus();
   }
-  </script>
+</script>
 
   <!-- Bottom Widgets -->
   <div class="widgets">
