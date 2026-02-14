@@ -168,35 +168,56 @@
     return /[\u0B80-\u0BFF]/.test(text);
   }
 
-  input.addEventListener("input", async () => {
-    const val = input.value.trim();
-    sugBox.innerHTML = "";
+  const input = document.getElementById("word");
+  const sugBox = document.getElementById("suggestions");
+  let currentTopSuggestion = ""; // To track the #1 Google result
 
-    if (!val || isTamil(val)) return;
+  input.addEventListener("input", async () => {
+    const val = input.value.split(" ").pop(); // Get only the last word typed
+    
+    if (!val || /[\u0B80-\u0BFF]/.test(val)) {
+      sugBox.innerHTML = "";
+      currentTopSuggestion = "";
+      return;
+    }
 
     try {
-      const r = await fetch(
-        "https://sollagarathi-backend.onrender.com/transliterate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: val })
-        }
-      );
+      const r = await fetch("https://sollagarathi-backend.onrender.com/transliterate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: val })
+      });
 
       const j = await r.json();
 
       if (j.options && j.options.length) {
+        currentTopSuggestion = j.options[0]; // Set the first option as the "spacebar" target
         sugBox.innerHTML = j.options
-          .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
+          .map(w => `<span onclick="pickTamil('${w}')" style="cursor:pointer; padding:5px; border:1px solid #ccc; margin:2px; display:inline-block; border-radius:4px;">${w}</span>`)
           .join("");
       }
     } catch {}
   });
 
+  // This part makes it work like Google (Spacebar conversion)
+  input.addEventListener("keydown", (e) => {
+    if (e.key === " " && currentTopSuggestion) {
+      e.preventDefault(); // Stop the space for a millisecond
+      const words = input.value.split(" ");
+      words[words.length - 1] = currentTopSuggestion; // Swap English for Tamil
+      input.value = words.join(" ") + " "; // Add the space back
+      sugBox.innerHTML = "";
+      currentTopSuggestion = "";
+    }
+  });
+
   function pickTamil(word) {
-    input.value = word;
+    const words = input.value.split(" ");
+    words[words.length - 1] = word;
+    input.value = words.join(" ") + " ";
     sugBox.innerHTML = "";
+    currentTopSuggestion = "";
+    input.focus();
   }
   </script>
 
