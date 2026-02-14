@@ -1,0 +1,34 @@
+<div class="container" id="contributor-form">
+    <h2>பங்களிப்பாளராக இணையுங்கள் (Join as Contributor)</h2>
+    <form id="regForm">
+        <input type="text" id="fullName" placeholder="முழு பெயர் (Full Name)" required><br><br>
+        <input type="email" id="email" placeholder="மின்னஞ்சல் (Email)" required><br><br>
+        <select id="role">
+            <option value="student">மாணவர் (Student)</option>
+            <option value="teacher">ஆசிரியர் (Teacher)</option>
+            <option value="scholar">அறிஞர் (Scholar)</option>
+        </select><br><br>
+        <input type="text" id="institution" placeholder="நிறுவனம் (Institution)"><br><br>
+        <button type="submit">விண்ணப்பிக்கவும்</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('regForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+        full_name: document.getElementById('fullName').value,
+        email: document.getElementById('email').value,
+        role: document.getElementById('role').value,
+        institution: document.getElementById('institution').value
+    };
+    
+    const res = await fetch(`${API_URL}/api/contributors/register`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    alert(data.message || data.error);
+};
+</script>
