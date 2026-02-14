@@ -144,11 +144,10 @@
     resultBox.innerHTML = `<div class="box"><div class="title">${data.lemma}</div>${data.entry}</div>`;
   }
 
-  // 3. Google Input Tool Logic (The "Google Feel")
+  // 3. Google Input Tool Logic
   input.addEventListener("input", async () => {
     const val = input.value.split(" ").pop(); 
     
-    // Only transliterate if it is English
     if (!val || /[\u0B80-\u0BFF]/.test(val)) {
       sugBox.innerHTML = "";
       currentTopSuggestion = "";
@@ -173,10 +172,16 @@
     } catch {}
   });
 
-  // Spacebar Auto-Convert
+  // 4. Combined Trigger: SPACE for Transliteration, ENTER for Search
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") searchWord();
+    // TRIGGER: ENTER KEY
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevents line breaks
+      searchWord();
+      sugBox.innerHTML = ""; // Clear suggestions when searching
+    }
     
+    // TRIGGER: SPACEBAR (Transliteration)
     if (e.key === " " && currentTopSuggestion) {
       e.preventDefault(); 
       const words = input.value.split(" ");
