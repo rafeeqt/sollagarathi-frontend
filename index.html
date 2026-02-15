@@ -69,20 +69,15 @@ function parseContent(text) {
     return text
         // 1. Clean up Wiktionary language headers (== தமிழ் ==)
         .replace(/== (.*?) ==/g, '') 
-        
         // 2. Convert Subheaders (=== Title ===) to styled, left-aligned h4
         .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:20px 0 10px 0; border-bottom:1px solid #eee; text-align: left;">$1</h4>')
-        
         // 3. Convert Section Headers (== Title ==) to styled h3
         .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:25px 0 15px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
-        
         // 4. Handle example/citation markers often bunched in your screenshots
         .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px;">உதாரணம்:</b>')
-        
         // 5. Handle single '=' markers seen in your third screenshot
         .replace(/^= (.*)/gm, '<h4 style="color:#4b2e83; margin-top:15px; text-align: left;">$1</h4>')
-        .replace(/=/g, '') 
-
+        .replace(/=/g, '')
         // 6. Convert newlines to breaks to prevent the "wall of text" effect
         .replace(/\n/g, '<br>');
 }
