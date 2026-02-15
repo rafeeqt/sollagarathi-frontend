@@ -90,23 +90,31 @@ function formatResultBox(sourceName, title, content) {
         </div>`;
 }
 
-        async function searchWord() {
-            const q = input.value.trim();
-            if(!q) return;
-            resBox.innerHTML = "தேடப்படுகிறது...";
-            const r = await fetch(`${API}/resolve`, {
-                method: "POST",
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ query: q })
-            });
-            const d = await r.json();
-            if(d.stage === "entry") {
-                resBox.innerHTML = `<div class="box"><div class="title">${d.lemma}</div>${d.entry}</div>`;
-                showLinks(d.lemma);
-            } else {
-                resBox.innerHTML = `<div class="box">தகவல் இல்லை. <button onclick="finalize('${q}')">உருவாக்கு</button></div>`;
-            }
+async function searchWord() {
+    const q = document.getElementById("word").value.trim();
+    const resBox = document.getElementById("result");
+    if(!q) return;
+
+    resBox.innerHTML = "<p>தேடப்படுகிறது...</p>";
+
+    try {
+        const response = await fetch(`${API}/resolve`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ query: q })
+        });
+        const data = await response.json();
+
+        if (data.stage === "entry") {
+            // Apply the new formatted box
+            resBox.innerHTML = formatResultBox(data.source, data.lemma, data.entry);
+        } else {
+            resBox.innerHTML = `<div class="result-box" style="padding:20px;">பொருள் கண்டறியப்படவில்லை.</div>`;
         }
+    } catch (e) {
+        resBox.innerHTML = "Error connecting to server.";
+    }
+}
 
         async function finalize(w) {
             const r = await fetch(`${API}/finalize`, {
