@@ -84,17 +84,56 @@
 
   <div id="result" class="results"></div>
 
-  <script>
+<div id="external-sources" style="margin-top: 20px; display: none; text-align: left; max-width: 800px; margin: 20px auto;">
+  <h4 style="color: #555; border-bottom: 1px solid #ddd; padding-bottom: 5px;">பிற அகராதிக் குறிப்புகள் (External Sources):</h4>
+  <div id="links-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+</div>
+
+<script>
   // 1. Core Variables
   const input = document.getElementById("word");
   const sugBox = document.getElementById("suggestions");
+  const resultBox = document.getElementById("result");
+  const externalSection = document.getElementById("external-sources");
+  const linksContainer = document.getElementById("links-container");
   let currentTopSuggestion = ""; 
+
+  // --- NEW: Function to display external buttons ---
+  function injectExternalLinks(word) {
+    const sources = [
+      { name: "Mydictionary", url: `https://mydictionary.in/search?q=${encodeURIComponent(word)}` },
+      { name: "விக்சனரி", url: `https://ta.wiktionary.org/wiki/${encodeURIComponent(word)}` },
+      { name: "Tamil Lexicon", url: `https://dsal.uchicago.edu/cgi-bin/app/tamil-lex_query.py?qs=${encodeURIComponent(word)}` },
+      { name: "Winslow", url: `https://dsal.uchicago.edu/cgi-bin/app/winslow_query.py?qs=${encodeURIComponent(word)}` },
+      { name: "Fabricius", url: `https://dsal.uchicago.edu/cgi-bin/app/fabricius_query.py?qs=${encodeURIComponent(word)}` },
+      { name: "அகராதி.com", url: `https://www.அகராதி.com/s/tamil/${encodeURIComponent(word)}` }
+    ];
+
+    linksContainer.innerHTML = ""; // Clear old
+    sources.forEach(src => {
+      const btn = document.createElement("a");
+      btn.href = src.url;
+      btn.target = "_blank";
+      btn.innerText = src.name;
+      btn.style = "padding: 8px 12px; background: #efefef; color: #333; text-decoration: none; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-weight: bold;";
+      linksContainer.appendChild(btn);
+    });
+    externalSection.style.display = "block";
+  }
+
+  // --- NEW: Copy to Clipboard Function ---
+  function copyResult(text) {
+    const cleanText = text.replace(/<[^>]*>/g, ''); // Removes HTML tags like <i>
+    navigator.clipboard.writeText(cleanText).then(() => {
+      alert("பொருள் நகலெடுக்கப்பட்டது!");
+    });
+  }
 
   // 2. Search Logic
   async function searchWord() {
     const q = input.value.trim();
-    const resultBox = document.getElementById("result");
     resultBox.innerHTML = "";
+    externalSection.style.display = "none";
 
     if (!q) {
       resultBox.innerHTML = `<div class="box">ஒரு சொல் உள்ளிடுங்கள்.</div>`;
@@ -115,15 +154,20 @@
 
       if (data.stage === "choose") {
         const list = data.options.map(w =>
-          `<button onclick="finalizeWord('${w}')">${w}</button>`
-        ).join(" ");
-
+          `<button onclick="finalizeWord('${w}')" style="margin:5px; padding:8px; cursor:pointer;">${w}</button>`
+        ).join("");
         resultBox.innerHTML = `<div class="box"><div class="title">தமிழ்ச் சமமான சொற்கள்</div>${list}</div>`;
         return;
       }
 
       if (data.stage === "entry") {
-        resultBox.innerHTML = `<div class="box"><div class="title">${data.lemma}</div>${data.entry}</div>`;
+        resultBox.innerHTML = `
+          <div class="box">
+            <div class="title">${data.lemma}</div>
+            ${data.entry}
+            <br><button onclick="copyResult('${data.entry}')" style="margin-top:10px; font-size:12px;">Copy</button>
+          </div>`;
+        injectExternalLinks(data.lemma); // Trigger links
       }
     } catch {
       resultBox.innerHTML = `<div class="box">சர்வரை அணுக முடியவில்லை.</div>`;
@@ -131,68 +175,54 @@
   }
 
   async function finalizeWord(tamilWord) {
-    const resultBox = document.getElementById("result");
     resultBox.innerHTML = `<div class="box">அகராதி பதிவு உருவாக்கப்படுகிறது...</div>`;
-
     const res = await fetch("https://sollagarathi-backend.onrender.com/finalize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ word: tamilWord })
     });
-
     const data = await res.json();
-    resultBox.innerHTML = `<div class="box"><div class="title">${data.lemma}</div>${data.entry}</div>`;
+    resultBox.innerHTML = `
+      <div class="box">
+        <div class="title">${data.lemma}</div>
+        ${data.entry}
+        <br><button onclick="copyResult('${data.entry}')" style="margin-top:10px; font-size:12px;">Copy</button>
+      </div>`;
+    injectExternalLinks(data.lemma); // Trigger links
   }
 
-    // 2.a. Other dics
-    <div id="external-sources" style="margin-top: 20px; display: none;">
-  <h4 style="color: #555;">Check other dictionaries:</h4>
-  <div id="links-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
-    </div>
-</div>
-    
-  // 3. Google Input Tool Logic
+  // 3. Google Input Tool Logic (Unchanged but fixed mapping)
   input.addEventListener("input", async () => {
     const val = input.value.split(" ").pop(); 
-    
     if (!val || /[\u0B80-\u0BFF]/.test(val)) {
       sugBox.innerHTML = "";
-      currentTopSuggestion = "";
       return;
     }
-
     try {
-     // ... inside try block
-const j = await r.json();
-
-if (Array.isArray(j.options) && j.options.length > 0) {
-  currentTopSuggestion = j.options[0]; 
-  sugBox.innerHTML = j.options
-    .map(w => `<span onclick="pickTamil('${w}')" style="cursor:pointer; padding:5px; border:1px solid #ccc; margin:2px; display:inline-block; border-radius:4px; background:#fff;">${w}</span>`)
-    .join("");
-} else {
-  sugBox.innerHTML = ""; // Clear if no results
-}
+      const r = await fetch("https://sollagarathi-backend.onrender.com/transliterate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: val })
+      });
+      const j = await r.json();
+      if (j.options && j.options.length) {
+        currentTopSuggestion = j.options[0]; 
+        sugBox.innerHTML = j.options
+          .map(w => `<span onclick="pickTamil('${w}')">${w}</span>`)
+          .join("");
+      }
     } catch {}
   });
 
-  // 4. Combined Trigger: SPACE for Transliteration, ENTER for Search
   input.addEventListener("keydown", (e) => {
-    // TRIGGER: ENTER KEY
     if (e.key === "Enter") {
-      e.preventDefault(); // Prevents line breaks
+      e.preventDefault();
       searchWord();
-      sugBox.innerHTML = ""; // Clear suggestions when searching
+      sugBox.innerHTML = "";
     }
-    
-    // TRIGGER: SPACEBAR (Transliteration)
     if (e.key === " " && currentTopSuggestion) {
       e.preventDefault(); 
-      const words = input.value.split(" ");
-      words[words.length - 1] = currentTopSuggestion; 
-      input.value = words.join(" ") + " "; 
-      sugBox.innerHTML = "";
-      currentTopSuggestion = "";
+      pickTamil(currentTopSuggestion);
     }
   });
 
