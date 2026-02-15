@@ -62,48 +62,53 @@
             if (e.key === "Enter") searchWord();
         });
 
-        // Function to parse the "wall of text" into readable HTML
+// CONFIGURATION - Ensure this matches your live Render URL
+const API = "https://sollagarathi-backend.onrender.com";
+
+// 1. IMPROVED PARSER: Converts Wikitext symbols to clean HTML
 function parseContent(text) {
     if (!text) return "";
 
     return text
-        // 1. Remove Language Headers (e.g., == தமிழ் ==) that create top gaps
+        // Remove Language Headers (e.g., == தமிழ் ==) to fix top gaps
         .replace(/== (.*?) ==/g, '')
         
-        // 2. Convert Subheaders (=== Title ===) to styled, left-aligned h4
-        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; text-align: left;">$1</h4>')
+        // Convert Subheaders (=== Title ===) to styled, left-aligned h4
+        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;">$1</h4>')
         
-        // 3. Convert Section Headers (== Title ==) to h3
-        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:5px; text-align: left;">$1</h3>')
+        // Convert Section Headers (== Title ==) to styled h3
+        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
         
-        // 4. Fix Example Markers often bunched in the text
-        .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666;">உதாரணம்:</b>')
+        // Handle example markers (எ. கா.)
+        .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px; text-align: left;">உதாரணம்:</b>')
         
-        // 5. Convert single '=' markers and clean stray symbols
-        .replace(/^= (.*)/gm, '<div style="font-weight:bold; margin-top:10px; text-align: left;">$1</div>')
-        .replace(/=/g, '') 
+        // Clean up remaining stray '=' symbols to fix readability
+        .replace(/=/g, '')
 
-        // 6. Convert newlines to breaks to maintain vertical flow without "huge spaces"
-        .replace(/\n\s*\n/g, '<br><br>') // Consolidates multiple empty lines
+        // Fix line breaks to prevent "wall of text"
+        .replace(/\n\s*\n/g, '<br><br>') 
         .replace(/\n/g, '<br>');
 }
 
+// 2. STYLED BOX: Forces left-alignment and adds source titles
 function formatResultBox(sourceName, title, content) {
     return `
-        <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
+        <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 850px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
             <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:12px; font-weight:bold; color:#4b2e83; text-transform:uppercase; text-align: left;">
-                மூலம்: ${sourceName}
+                தகவல் மூலம்: ${sourceName}
             </div>
             <div style="padding: 25px; text-align: left;">
-                <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; text-align: left;">
+                <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; text-align: left; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px;">
                     ${title}
                 </h2>
-                <div class="parsed-content" style="line-height: 1.6; font-size: 17px; color: #333; text-align: left;">
+                <div class="parsed-content" style="line-height: 1.8; font-size: 17px; color: #333; text-align: left;">
                     ${parseContent(content)}
                 </div>
             </div>
         </div>`;
 }
+
+// 3. UPDATED SEARCH: Preserves database and external fetch logic
 async function searchWord() {
     const q = document.getElementById("word").value.trim();
     const resBox = document.getElementById("result");
@@ -120,10 +125,10 @@ async function searchWord() {
         const data = await response.json();
 
         if (data.stage === "entry") {
-            // Apply the new formatted box
-            resBox.innerHTML = formatResultBox(data.source, data.lemma, data.entry);
+            // Displays the record with appropriate source name
+            resBox.innerHTML = formatResultBox(data.source || "அகராதி", data.lemma, data.entry);
         } else {
-            resBox.innerHTML = `<div class="result-box" style="padding:20px;">பொருள் கண்டறியப்படவில்லை.</div>`;
+            resBox.innerHTML = `<div class="result-card" style="padding:20px; text-align: left;">தகவல் இல்லை. <button onclick="finalize('${q}')">உருவாக்கு</button></div>`;
         }
     } catch (e) {
         resBox.innerHTML = "Error connecting to server.";
