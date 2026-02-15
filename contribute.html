@@ -1,85 +1,49 @@
 <!DOCTYPE html>
 <html lang="ta">
 <head>
-  <meta charset="UTF-8">
-  <title>பங்களிப்பாளர் பக்கம் | Sollagarathi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tamil&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Noto Serif Tamil', serif; background:#f4f4f4; padding: 40px; text-align: center; }
-    .form-container { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: left; }
-    h2 { color: #4b2e83; text-align: center; }
-    label { font-weight: bold; display: block; margin-top: 15px; }
-    input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    button { width: 100%; background: #4b2e83; color: white; padding: 12px; border: none; border-radius: 6px; margin-top: 20px; cursor: pointer; font-size: 16px; }
-    button:hover { background: #362161; }
-    .nav-link { margin-top: 20px; display: block; text-align: center; color: #666; text-decoration: none; }
-  </style>
+    <meta charset="UTF-8">
+    <title>பங்களிப்பாளர்</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+        .card { background: white; padding: 30px; display: inline-block; border-radius: 10px; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input, select { display: block; width: 300px; margin: 10px 0; padding: 10px; }
+        button { width: 100%; padding: 10px; background: #4b2e83; color: white; border: none; cursor: pointer; }
+    </style>
 </head>
 <body>
-
-<div class="form-container">
-  <h2>அறிஞர்கள் இணைவாசல்</h2>
-  <p style="font-size: 14px; color: #555;">தமிழ் அகராதிப் பணியில் இணைய உங்கள் விவரங்களைப் பதியுங்கள்.</p>
-  
-  <form id="contributorForm">
-    <label>முழு பெயர் (Full Name)</label>
-    <input type="text" id="fullName" required placeholder="எ.கா: முனைவர். கபிலன்">
-
-    <label>மின்னஞ்சல் (Email)</label>
-    <input type="email" id="email" required placeholder="example@mail.com">
-
-    <label>நிலை (Role)</label>
-    <select id="role">
-      <option value="scholar">தமிழ் அறிஞர் (Scholar)</option>
-      <option value="teacher">ஆசிரியர் (Teacher)</option>
-      <option value="student">ஆராய்ச்சி மாணவர் (Student)</option>
-    </select>
-
-    <label>தகுதி (Qualification)</label>
-    <input type="text" id="qualification" placeholder="எ.கா: Ph.D in Tamil Literature">
-
-    <label>நிறுவனம் (Institution)</label>
-    <input type="text" id="institution" placeholder="எ.கா: சென்னைப் பல்கலைக்கழகம்">
-
-    <button type="submit">விண்ணப்பிக்கவும்</button>
-  </form>
-  
-  <a href="index.html" class="nav-link">← முதற்பக்கத்திற்குச் செல்ல</a>
-</div>
-
-<script>
-  const API_URL = "https://sollagarathi-backend.onrender.com";
-
-  document.getElementById('contributorForm').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    const payload = {
-      full_name: document.getElementById('fullName').value,
-      email: document.getElementById('email').value,
-      role: document.getElementById('role').value,
-      qualification: document.getElementById('qualification').value,
-      institution: document.getElementById('institution').value
-    };
-
-    try {
-      const res = await fetch(`${API_URL}/api/contributors/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("விண்ணப்பம் ஏற்கப்பட்டது! உங்கள் credibility_score: 0. நிர்வாகி அனுமதித்தபின் மின்னஞ்சல் வரும்.");
-        window.location.href = "index.html";
-      } else {
-        alert("பிழை: " + data.error);
-      }
-    } catch {
-      alert("சர்வர் பிழை. மீண்டும் முயற்சிக்கவும்.");
-    }
-  };
-</script>
-
+    <div class="card">
+        <h2>அறிஞர்கள் இணைவாசல்</h2>
+        <form id="regForm">
+            <input type="text" id="name" placeholder="Full Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <select id="role">
+                <option value="scholar">Scholar</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+            </select>
+            <input type="text" id="qual" placeholder="Qualification">
+            <input type="text" id="inst" placeholder="Institution">
+            <button type="submit">Apply</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById("regForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const res = await fetch("https://sollagarathi-backend.onrender.com/api/contributors/register", {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    full_name: document.getElementById("name").value,
+                    email: document.getElementById("email").value,
+                    role: document.getElementById("role").value,
+                    qualification: document.getElementById("qual").value,
+                    institution: document.getElementById("inst").value
+                })
+            });
+            const data = await res.json();
+            if(data.success) { alert("Success!"); window.location.href="index.html"; }
+            else { alert("Error: Email might exist."); }
+        };
+    </script>
 </body>
 </html>
