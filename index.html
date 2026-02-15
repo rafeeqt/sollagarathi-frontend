@@ -162,20 +162,17 @@
     }
 
     try {
-      const r = await fetch("https://sollagarathi-backend.onrender.com/transliterate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: val })
-      });
+     // ... inside try block
+const j = await r.json();
 
-      const j = await r.json();
-
-      if (j.options && j.options.length) {
-        currentTopSuggestion = j.options[0]; 
-        sugBox.innerHTML = j.options
-          .map(w => `<span onclick="pickTamil('${w}')" style="cursor:pointer; padding:5px; border:1px solid #ccc; margin:2px; display:inline-block; border-radius:4px;">${w}</span>`)
-          .join("");
-      }
+if (Array.isArray(j.options) && j.options.length > 0) {
+  currentTopSuggestion = j.options[0]; 
+  sugBox.innerHTML = j.options
+    .map(w => `<span onclick="pickTamil('${w}')" style="cursor:pointer; padding:5px; border:1px solid #ccc; margin:2px; display:inline-block; border-radius:4px; background:#fff;">${w}</span>`)
+    .join("");
+} else {
+  sugBox.innerHTML = ""; // Clear if no results
+}
     } catch {}
   });
 
