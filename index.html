@@ -97,53 +97,59 @@
                 .replace(/\n\s*\n/g, '\n')
                 .replace(/\n/g, '<br>');
         }
+/**
+ * COMPONENT: Result Card Generator
+ * FUNCTION: formatResultBox(source, word, text)
+ * DESCRIPTION: Wraps the parsed content into a modern, left-aligned UI card.
+ */
+function formatResultBox(sourceName, title, content) {
+    return `
+        <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:25px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
+            <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:11px; font-weight:bold; color:#4b2e83; text-transform:uppercase; text-align: left;">
+                தகவல் மூலம்: ${sourceName}
+            </div>
+            <div style="padding: 25px; text-align: left;">
+                <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px; text-align: left;">
+                    ${title}
+                </h2>
+                <div class="content-body" style="line-height: 1.6; font-size: 17px; color: #333; text-align: left;">
+                    ${parseContent(content)}
+                </div>
+            </div>
+        </div>`;
+}
 
-        function formatResultBox(sourceName, title, content) {
-            return `
-                <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:25px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
-                    <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:12px; font-weight:bold; color:#4b2e83; text-transform:uppercase; text-align: left;">
-                        தகவல் மூலம்: ${sourceName}
-                    </div>
-                    <div style="padding: 25px; text-align: left;">
-                        <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px; text-align: left;">
-                            ${title}
-                        </h2>
-                        <div class="parsed-content" style="line-height: 1.6; font-size: 17px; color: #333; text-align: left;">
-                            ${parseContent(content)}
-                        </div>
-                    </div>
-                </div>`;
+/**
+ * ACTION: Word Search
+ * FUNCTION: searchWord()
+ * DESCRIPTION: Orchestrates the API call and UI state updates.
+ */
+async function searchWord() {
+    const q = document.getElementById("word").value.trim();
+    if(!q) return;
+
+    // UI Feedback: Loading state
+    resBox.innerHTML = "<p style='text-align:center; color:#666;'>தேடப்படுகிறது...</p>";
+
+    try {
+        const response = await fetch(`${API}/resolve`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ query: q })
+        });
+        const data = await response.json();
+
+        // UI Update: Success or Fail state
+        if (data.stage === "entry") {
+            resBox.innerHTML = formatResultBox(data.source || "அகராதி", data.lemma, data.entry);
+        } else {
+            resBox.innerHTML = `<div class="box">மன்னிக்கவும், "${q}" காணப்படவில்லை.</div>`;
         }
-
-        async function searchWord() {
-            const q = document.getElementById("word").value.trim();
-            if(!q) return;
-
-            resBox.innerHTML = "<p style='text-align:center;'>தேடப்படுகிறது...</p>";
-            document.getElementById("external-sources").style.display = "none";
-
-            try {
-                const response = await fetch(`${API}/resolve`, {
-                    method: "POST",
-                    headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ query: q })
-                });
-                const data = await response.json();
-
-                if (data.stage === "entry") {
-                    resBox.innerHTML = formatResultBox(data.source || "அகராதி", data.lemma, data.entry);
-                    showLinks(q);
-                } else {
-                    resBox.innerHTML = `<div class="result-card" style="padding:25px; background:white; border-radius:12px; text-align: left; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
-                        <p>மன்னிக்கவும், <b>"${q}"</b> எமது அகராதியில் இல்லை.</p>
-                        <button onclick="finalize('${q}')">புதிதாக உருவாக்கு</button>
-                    </div>`;
-                    showLinks(q);
-                }
-            } catch (e) {
-                resBox.innerHTML = "<p style='color:red;'>Error connecting to server.</p>";
-            }
-        }
+    } catch (e) {
+        console.error("SEARCH ERROR:", e);
+        resBox.innerHTML = "<p style='color:red;'>இணையத் தொடர்பு துண்டிக்கப்பட்டது.</p>";
+    }
+}}
 
         async function finalize(w) {
             try {
