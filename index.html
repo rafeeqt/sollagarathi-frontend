@@ -144,6 +144,13 @@
     resultBox.innerHTML = `<div class="box"><div class="title">${data.lemma}</div>${data.entry}</div>`;
   }
 
+    // 2.a. Other dics
+    <div id="external-sources" style="margin-top: 20px; display: none;">
+  <h4 style="color: #555;">Check other dictionaries:</h4>
+  <div id="links-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
+    </div>
+</div>
+    
   // 3. Google Input Tool Logic
   input.addEventListener("input", async () => {
     const val = input.value.split(" ").pop(); 
