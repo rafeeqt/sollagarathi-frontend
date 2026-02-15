@@ -1,92 +1,49 @@
-<div id="result" class="results"></div>
-
-<div id="external-results-container" class="results"></div>
-
-<div id="external-sources" style="display:none; margin-top:30px; border-top: 1px solid #ddd; padding-top: 20px;">
-    <h4 style="color: #4b2e83;">கூடுதல் தரவுகள் (More Links):</h4>
-    <div id="links-container"></div>
-</div>
-
-<script>
-    const input = document.getElementById("word");
-    const resBox = document.getElementById("result");
-    const extResBox = document.getElementById("external-results-container");
-    const API = "https://sollagarathi-backend.onrender.com";
-
-    async function searchWord() {
-        const q = input.value.trim();
-        if(!q) return;
-
-        // Reset views
-        resBox.innerHTML = "<p>தேடப்படுகிறது...</p>";
-        extResBox.innerHTML = "";
-        document.getElementById("external-sources").style.display = "none";
-
-        try {
-            const r = await fetch(`${API}/resolve`, {
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <title>பங்களிப்பாளர்</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+        .card { background: white; padding: 30px; display: inline-block; border-radius: 10px; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input, select { display: block; width: 300px; margin: 10px 0; padding: 10px; }
+        button { width: 100%; padding: 10px; background: #4b2e83; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>அறிஞர்கள் இணைவாசல்</h2>
+        <form id="regForm">
+            <input type="text" id="name" placeholder="Full Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <select id="role">
+                <option value="scholar">Scholar</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+            </select>
+            <input type="text" id="qual" placeholder="Qualification">
+            <input type="text" id="inst" placeholder="Institution">
+            <button type="submit">Apply</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById("regForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const res = await fetch("https://sollagarathi-backend.onrender.com/api/contributors/register", {
                 method: "POST",
                 headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ query: q })
+                body: JSON.stringify({
+                    full_name: document.getElementById("name").value,
+                    email: document.getElementById("email").value,
+                    role: document.getElementById("role").value,
+                    qualification: document.getElementById("qual").value,
+                    institution: document.getElementById("inst").value
+                })
             });
-            const d = await r.json();
-
-            // 1. Show Primary Result (Your Master DB)
-            if(d.stage === "entry") {
-                resBox.innerHTML = formatResultBox("சொல் அகராதி (Sollagarathi)", d.lemma, d.entry);
-            } else {
-                resBox.innerHTML = `<div class="box">எமது அகராதியில் தகவல் இல்லை.</div>`;
-            }
-
-            // 2. Fetch and Show Wiktionary Directly
-            fetchWiktionary(q);
-
-            // 3. Show external quick links for the rest
-            showQuickLinks(q);
-
-        } catch(e) {
-            resBox.innerHTML = "Error connecting to server.";
-        }
-    }
-
-    // Helper: Formats a Box with a Title
-    function formatResultBox(sourceName, title, content) {
-        // Clean up text formatting (e.g., handling new lines and basic Wiktionary markers)
-        const formattedContent = content
-            .replace(/===(.*?)===/g, '<h4 style="color:#666">$1</h4>')
-            .replace(/\n/g, '<br>');
-
-        return `
-            <div class="box">
-                <div style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
-                    தகவல் மூலம்: ${sourceName}
-                </div>
-                <div class="title">${title}</div>
-                <div style="line-height: 1.6; color: #333;">${formattedContent}</div>
-            </div>`;
-    }
-
-    async function fetchWiktionary(w) {
-        try {
-            const url = `https://ta.wiktionary.org/w/api.php?action=query&format=json&origin=*&prop=extracts&explaintext=1&titles=${encodeURIComponent(w)}`;
-            const res = await fetch(url);
             const data = await res.json();
-            const page = data.query.pages[Object.keys(data.query.pages)[0]];
-
-            if (page && page.extract) {
-                extResBox.innerHTML += formatResultBox("விக்சனரி (Wiktionary)", w, page.extract);
-            }
-        } catch (e) { console.log("Wiktionary load failed"); }
-    }
-
-    function showQuickLinks(w) {
-        const links = [
-            {n:"Tamil Lexicon", u:`https://dsal.uchicago.edu/cgi-bin/app/tamil-lex_query.py?qs=${w}`},
-            {n:"அகராதி.com", u:`https://www.அகராதி.com/s/tamil/${w}`},
-            {n:"Winslow", u:`https://dsal.uchicago.edu/cgi-bin/app/winslow_query.py?qs=${w}`}
-        ];
-        document.getElementById("links-container").innerHTML = links.map(l => 
-            `<a class="ext-link" href="${l.u}" target="_blank">${l.n}</a>`
-        ).join("");
-        document.getElementById("external-sources").style.display = "block";
-    }
-</script>
+            if(data.success) { alert("Success!"); window.location.href="index.html"; }
+            else { alert("Error: Email might exist."); }
+        };
+    </script>
+</body>
+</html>
