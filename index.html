@@ -67,30 +67,35 @@ function parseContent(text) {
     if (!text) return "";
 
     return text
-        // 1. Clean up Wiktionary language headers (== தமிழ் ==)
-        .replace(/== (.*?) ==/g, '') 
+        // 1. Remove Language Headers (e.g., == தமிழ் ==) that create top gaps
+        .replace(/== தமிழ் ==/g, '')
+        
         // 2. Convert Subheaders (=== Title ===) to styled, left-aligned h4
-        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:20px 0 10px 0; border-bottom:1px solid #eee; text-align: left;">$1</h4>')
+        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;">$1</h4>')
+        
         // 3. Convert Section Headers (== Title ==) to styled h3
-        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:25px 0 15px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
-        // 4. Handle example/citation markers often bunched in your screenshots
-        .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px;">உதாரணம்:</b>')
-        // 5. Handle single '=' markers seen in your third screenshot
-        .replace(/^= (.*)/gm, '<h4 style="color:#4b2e83; margin-top:15px; text-align: left;">$1</h4>')
+        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
+        
+        // 4. Handle example markers (எ. கா.) often bunched in text
+        .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px; text-align: left;">உதாரணம்:</b>')
+        
+        // 5. Clean up any remaining stray '=' symbols
         .replace(/=/g, '')
-        // 6. Convert newlines to breaks to prevent the "wall of text" effect
+
+        // 6. Convert newlines to breaks to maintain vertical flow
+        .replace(/\n\s*\n/g, '<br><br>') // Consolidates multiple empty lines
         .replace(/\n/g, '<br>');
 }
 // 2. STYLED BOX: Forces left-alignment and adds source titles
 function formatResultBox(sourceName, title, content) {
     return `
-        <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
+        <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 850px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
             <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:12px; font-weight:bold; color:#4b2e83; text-transform:uppercase; text-align: left;">
                 தகவல் மூலம்: ${sourceName}
             </div>
             
             <div style="padding: 25px; text-align: left;">
-                <h2 style="margin: 0 0 20px 0; color: #4b2e83; font-size: 32px; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px; text-align: left;">
+                <h2 style="margin: 0 0 15px 0; color: #4b2e83; font-size: 32px; text-align: left; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px;">
                     ${title}
                 </h2>
                 
