@@ -68,40 +68,28 @@ const API = "https://sollagarathi-backend.onrender.com";
 // 1. IMPROVED PARSER: Converts Wikitext symbols to clean HTML
 function parseContent(text) {
     if (!text) return "";
-
     return text
-        // Remove Language Headers (e.g., == தமிழ் ==) to fix top gaps
+        // Removes the "== தமிழ் ==" header that causes a huge top gap
         .replace(/== (.*?) ==/g, '')
-        
-        // Convert Subheaders (=== Title ===) to styled, left-aligned h4
-        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;">$1</h4>')
-        
-        // Convert Section Headers (== Title ==) to styled h3
-        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
-        
-        // Handle example markers (எ. கா.)
-        .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px; text-align: left;">உதாரணம்:</b>')
-        
-        // Clean up remaining stray '=' symbols to fix readability
+        // Converts === Title === to clean headings
+        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; text-align: left; border-bottom: 1px solid #eee;">$1</h4>')
+        // Converts == Title == to section headers
+        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:8px; text-align: left;">$1</h3>')
+        // Removes stray equal signs
         .replace(/=/g, '')
-
-        // Fix line breaks to prevent "wall of text"
-        .replace(/\n\s*\n/g, '<br><br>') 
+        // Fixes line breaks to stop the "wall of text"
         .replace(/\n/g, '<br>');
-}
 
 // 2. STYLED BOX: Forces left-alignment and adds source titles
 function formatResultBox(sourceName, title, content) {
     return `
-        <div class="result-card" style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 850px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
-            <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:12px; font-weight:bold; color:#4b2e83; text-transform:uppercase; text-align: left;">
-                தகவல் மூலம்: ${sourceName}
+        <div style="background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px; border-left:8px solid #4b2e83; overflow:hidden; text-align: left;">
+            <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:12px; font-weight:bold; color:#4b2e83; text-align: left;">
+                மூலம்: ${sourceName}
             </div>
             <div style="padding: 25px; text-align: left;">
-                <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; text-align: left; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px;">
-                    ${title}
-                </h2>
-                <div class="parsed-content" style="line-height: 1.8; font-size: 17px; color: #333; text-align: left;">
+                <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; text-align: left;">${title}</h2>
+                <div style="line-height: 1.8; font-size: 17px; color: #333; text-align: left;">
                     ${parseContent(content)}
                 </div>
             </div>
