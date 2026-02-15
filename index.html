@@ -80,37 +80,38 @@
 
  /**
  * FUNCTION: parseContent
- * DESCRIPTION: Formats raw data. Highlights titles ending in ":" and citations.
+ * DESCRIPTION: Safely formats Wikitext. Highlights titles with ":" and literature citations.
  */
 function parseContent(text) {
     if (!text) return "";
 
     try {
         let cleanText = text
-            // 1. Remove raw Wiktionary language headers (e.g., == தமிழ் ==)
+            // 1. Remove Wiktionary language headers (e.g., == தமிழ் ==) to fix the gap
             .replace(/== (.*?) ==/g, '') 
 
-            // 2. HIGHLIGHT HEADERS ending with ":" (e.g., "பொருள்:", "விளக்கம்:")
-            // We wrap them in a span with a background to make them stand out.
-            .replace(/^([^:<br>\n]+):/gm, '<b style="color:#4b2e83; background:#f0f0f0; padding:2px 5px; border-radius:3px; display:inline-block; margin-top:5px;">$1:</b>')
+            // 2. HIGHLIGHT HEADERS ending with ":" (e.g., "பொருள்:", "கந்தபுராணம் :")
+            // This captures words followed by a colon at the start of a line
+            .replace(/^([^:<br>\n]+):/gm, '<br><b style="color:#4b2e83; border-left:3px solid #4b2e83; padding-left:8px; display:inline-block; margin-top:10px;">$1:</b>')
 
-            // 3. DIFFERENTIATE LITERATURE (e.g., "(புறநா. 29)" or "(குறள்)")
-            // Highlights text inside parentheses to separate citations from meanings.
-            .replace(/\(([^)]+)\)/g, '<i style="color:#666; font-size:0.95em;">(<b>$1</b>)</i>')
+            // 3. DIFFERENTIATE CITATIONS (e.g., "(புறநா. 29)" or "(திருவாச. 1, 52)")
+            // Styles literature tags to separate them from the definition text
+            .replace(/\(([^)]+)\)/g, '<i style="color:#666; font-size:0.92em;">(<b>$1</b>)</i>')
 
-            // 4. CLEANUP WIKITEXT SYMBOLS (=== and ==)
-            .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; border-bottom:1px solid #eee; margin-top:10px;">$1</h4>')
-            .replace(/==(.*?)==/g, '<h3 style="color:#333; background:#f9f9f9; padding:5px;">$1</h3>')
+            // 4. FORMAT WIKITEXT HEADERS (=== and ==)
+            .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin-top:15px; border-bottom:1px solid #eee;">$1</h4>')
+            .replace(/==(.*?)==/g, '<h3 style="color:#333; background:#f9f9f9; padding:5px; border-radius:4px;">$1</h3>')
 
-            // 5. FINAL CLEANUP: Remove stray equal signs and fix spacing
+            // 5. FINAL CLEANUP: Strip stray '=' and handle line breaks
             .replace(/=/g, '')
-            .replace(/\n\s*\n/g, '<br>') // Collapses double spaces
+            .replace(/\n\s*\n/g, '<br>') 
             .replace(/\n/g, '<br>');
 
         return cleanText;
     } catch (error) {
-        console.error("Parsing Error:", error);
-        return text; // Returns raw text if the parser fails so the screen isn't blank
+        // If an error happens, we return the raw text so the app doesn't go blank
+        console.error("Formatting Error:", error);
+        return text;
     }
 }
 /**
