@@ -62,28 +62,31 @@
             if (e.key === "Enter") searchWord();
         });
 
+// CONFIGURATION - Ensure this matches your live Render URL
+const API = "https://sollagarathi-backend.onrender.com";
+
 // 1. IMPROVED PARSER: Converts Wikitext symbols to clean HTML
 function parseContent(text) {
     if (!text) return "";
 
     return text
-        // 1. Remove Language Headers (e.g., == தமிழ் ==) that create top gaps
-        .replace(/== தமிழ் ==/g, '')
+        // Remove Language Headers (e.g., == தமிழ் ==) to fix top gaps
+        .replace(/== (.*?) ==/g, '')
         
-        // 2. Convert Subheaders (=== Title ===) to styled, left-aligned h4
+        // Convert Subheaders (=== Title ===) to styled, left-aligned h4
         .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;">$1</h4>')
         
-        // 3. Convert Section Headers (== Title ==) to styled h3
+        // Convert Section Headers (== Title ==) to styled h3
         .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
         
-        // 4. Handle example markers (எ. கா.) often bunched in text
+        // Handle example markers (எ. கா.)
         .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px; text-align: left;">உதாரணம்:</b>')
         
-        // 5. Clean up any remaining stray '=' symbols
+        // Clean up remaining stray '=' symbols to fix readability
         .replace(/=/g, '')
 
-        // 6. Convert newlines to breaks to maintain vertical flow
-        .replace(/\n\s*\n/g, '<br><br>') // Consolidates multiple empty lines
+        // Fix line breaks to prevent "wall of text"
+        .replace(/\n\s*\n/g, '<br><br>') 
         .replace(/\n/g, '<br>');
 }
 // 2. STYLED BOX: Forces left-alignment and adds source titles
