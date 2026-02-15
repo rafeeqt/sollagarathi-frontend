@@ -78,25 +78,33 @@
             if (e.key === "Enter") searchWord();
         });
 
-        // --- Improved Parser Logic ---
-        function parseContent(text) {
-            if (!text) return "";
-            return text
-                // Fix Language Headers
-                .replace(/== (.*?) ==/g, '') 
-                // Fix Subheaders (=== Title ===)
-                .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:15px 0 5px 0; border-bottom:1px solid #eee; text-align: left;">$1</h4>')
-                // Fix Section Headers (== Title ==)
-                .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:20px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
-                // Fix Examples
-                .replace(/\(எ\. கா\.\)/g, '<br><b style="color:#666; display: block; margin-top: 5px;">உதாரணம்:</b>')
-                // Fix individual '=' signs
-                .replace(/^= (.*)/gm, '<h4 style="color:#4b2e83; margin-top:15px; text-align: left;">$1</h4>')
-                .replace(/=/g, '') 
-                // FIX: Consolidate multiple blank lines to one, then convert to <br>
-                .replace(/\n\s*\n/g, '\n')
-                .replace(/\n/g, '<br>');
-        }
+     * FUNCTION: parseContent
+ * DESCRIPTION: Advanced parser to highlight headers ending in ":" and literature citations.
+ */
+function parseContent(text) {
+    if (!text) return "";
+
+    return text
+        // 1. Remove Language Headers (e.g., == தமிழ் ==)
+        .replace(/== (.*?) ==/g, '') 
+        
+        // 2. HIGHLIGHT HEADERS ENDING IN ":" (e.g., "கந்தபுராணம் :")
+        // This looks for words at the start of a line ending with a colon
+        .replace(/^([^:<br>]+):/gm, '<br><b style="color:#4b2e83; background:#f4f1f8; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:8px;">$1:</b>')
+
+        // 3. HIGHLIGHT LITERATURE CITATIONS (e.g., "(திருவாச. 1, 52)" or "(குறள், 77)")
+        // This wraps text inside parentheses that look like references in bold/italics
+        .replace(/\(([^)]+? \d+[^)]*)\)/g, '<i style="color:#666; font-size:0.9em;">(<b>$1</b>)</i>')
+
+        // 4. Convert Wiktionary Section Headers (== Title ==)
+        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:20px 0 5px 0; border-bottom:1px solid #eee; text-align: left;">$1</h4>')
+        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:25px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
+
+        // 5. CLEANUP: Strip stray '=' and consolidate spacing
+        .replace(/=/g, '') 
+        .replace(/\n\s*\n/g, '\n')
+        .replace(/\n/g, '<br>');
+}
 /**
  * COMPONENT: Result Card Generator
  * FUNCTION: formatResultBox(source, word, text)
