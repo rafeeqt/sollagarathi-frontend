@@ -78,32 +78,40 @@
             if (e.key === "Enter") searchWord();
         });
 
-     * FUNCTION: parseContent
- * DESCRIPTION: Advanced parser to highlight headers ending in ":" and literature citations.
+ /**
+ * FUNCTION: parseContent
+ * DESCRIPTION: Formats raw data. Highlights titles ending in ":" and citations.
  */
 function parseContent(text) {
     if (!text) return "";
 
-    return text
-        // 1. Remove Language Headers (e.g., == தமிழ் ==)
-        .replace(/== (.*?) ==/g, '') 
-        
-        // 2. HIGHLIGHT HEADERS ENDING IN ":" (e.g., "கந்தபுராணம் :")
-        // This looks for words at the start of a line ending with a colon
-        .replace(/^([^:<br>]+):/gm, '<br><b style="color:#4b2e83; background:#f4f1f8; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:8px;">$1:</b>')
+    try {
+        let cleanText = text
+            // 1. Remove raw Wiktionary language headers (e.g., == தமிழ் ==)
+            .replace(/== (.*?) ==/g, '') 
 
-        // 3. HIGHLIGHT LITERATURE CITATIONS (e.g., "(திருவாச. 1, 52)" or "(குறள், 77)")
-        // This wraps text inside parentheses that look like references in bold/italics
-        .replace(/\(([^)]+? \d+[^)]*)\)/g, '<i style="color:#666; font-size:0.9em;">(<b>$1</b>)</i>')
+            // 2. HIGHLIGHT HEADERS ending with ":" (e.g., "பொருள்:", "விளக்கம்:")
+            // We wrap them in a span with a background to make them stand out.
+            .replace(/^([^:<br>\n]+):/gm, '<b style="color:#4b2e83; background:#f0f0f0; padding:2px 5px; border-radius:3px; display:inline-block; margin-top:5px;">$1:</b>')
 
-        // 4. Convert Wiktionary Section Headers (== Title ==)
-        .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; margin:20px 0 5px 0; border-bottom:1px solid #eee; text-align: left;">$1</h4>')
-        .replace(/==(.*?)==/g, '<h3 style="color:#222; margin:25px 0 10px 0; background:#f9f9f9; padding:8px; border-radius:4px; text-align: left;">$1</h3>')
+            // 3. DIFFERENTIATE LITERATURE (e.g., "(புறநா. 29)" or "(குறள்)")
+            // Highlights text inside parentheses to separate citations from meanings.
+            .replace(/\(([^)]+)\)/g, '<i style="color:#666; font-size:0.95em;">(<b>$1</b>)</i>')
 
-        // 5. CLEANUP: Strip stray '=' and consolidate spacing
-        .replace(/=/g, '') 
-        .replace(/\n\s*\n/g, '\n')
-        .replace(/\n/g, '<br>');
+            // 4. CLEANUP WIKITEXT SYMBOLS (=== and ==)
+            .replace(/===(.*?)===/g, '<h4 style="color:#4b2e83; border-bottom:1px solid #eee; margin-top:10px;">$1</h4>')
+            .replace(/==(.*?)==/g, '<h3 style="color:#333; background:#f9f9f9; padding:5px;">$1</h3>')
+
+            // 5. FINAL CLEANUP: Remove stray equal signs and fix spacing
+            .replace(/=/g, '')
+            .replace(/\n\s*\n/g, '<br>') // Collapses double spaces
+            .replace(/\n/g, '<br>');
+
+        return cleanText;
+    } catch (error) {
+        console.error("Parsing Error:", error);
+        return text; // Returns raw text if the parser fails so the screen isn't blank
+    }
 }
 /**
  * COMPONENT: Result Card Generator
