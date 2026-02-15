@@ -96,12 +96,10 @@ function formatResultBox(sourceName, title, content) {
             <div style="background:#f4f1f8; padding:10px 20px; border-bottom:1px solid #eee; font-size:12px; font-weight:bold; color:#4b2e83; text-transform:uppercase; text-align: left;">
                 தகவல் மூலம்: ${sourceName}
             </div>
-            
             <div style="padding: 25px; text-align: left;">
-                <h2 style="margin: 0 0 15px 0; color: #4b2e83; font-size: 32px; text-align: left; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px;">
+                <h2 style="margin: 0 0 10px 0; color: #4b2e83; font-size: 32px; text-align: left; border-bottom: 2px solid #f4f1f8; padding-bottom: 10px;">
                     ${title}
                 </h2>
-                
                 <div class="parsed-content" style="line-height: 1.8; font-size: 17px; color: #333; text-align: left;">
                     ${parseContent(content)}
                 </div>
@@ -109,7 +107,7 @@ function formatResultBox(sourceName, title, content) {
         </div>`;
 }
 
-// 3. UPDATED SEARCH: Preserves database and external fetch logic
+/// 3. UPDATED SEARCH: Preserves database and external fetch logic
 async function searchWord() {
     const q = document.getElementById("word").value.trim();
     const resBox = document.getElementById("result");
@@ -134,7 +132,8 @@ async function searchWord() {
     } catch (e) {
         resBox.innerHTML = "Error connecting to server.";
     }
-}        async function finalize(w) {
+}
+        async function finalize(w) {
             const r = await fetch(`${API}/finalize`, {
                 method: "POST",
                 headers: {"Content-Type":"application/json"},
