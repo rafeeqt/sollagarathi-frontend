@@ -150,8 +150,7 @@ async function searchWord() {
     const q = document.getElementById("word").value.trim();
     if(!q) return;
 
-    // UI Feedback: Loading state
-    resBox.innerHTML = "<p style='text-align:center; color:#666;'>தேடப்படுகிறது...</p>";
+    resBox.innerHTML = "<p style='text-align:center;'>தேடப்படுகிறது...</p>";
 
     try {
         const response = await fetch(`${API}/resolve`, {
@@ -161,17 +160,18 @@ async function searchWord() {
         });
         const data = await response.json();
 
-        // UI Update: Success or Fail state
         if (data.stage === "entry") {
-            resBox.innerHTML = formatResultBox(data.source || "அகராதி", data.lemma, data.entry);
+            // CRITICAL: We pass data.entry through parseContent here
+            resBox.innerHTML = formatResultBox(data.source, data.lemma, data.entry);
+            if(typeof showLinks === "function") showLinks(data.lemma);
         } else {
-            resBox.innerHTML = `<div class="box">மன்னிக்கவும், "${q}" காணப்படவில்லை.</div>`;
+            resBox.innerHTML = `<div style="text-align:center;">"${q}" காணப்படவில்லை.</div>`;
         }
     } catch (e) {
-        console.error("SEARCH ERROR:", e);
-        resBox.innerHTML = "<p style='color:red;'>இணையத் தொடர்பு துண்டிக்கப்பட்டது.</p>";
+        console.error("Search failed:", e);
+        resBox.innerHTML = "<p style='color:red;'>Error connecting to server.</p>";
     }
-}}
+}
 
         async function finalize(w) {
             try {
