@@ -48,8 +48,11 @@
         let topSug = "";
         const API = "https://sollagarathi-backend.onrender.com";
 
-        // --- Transliteration Logic ---
-        input.addEventListener("input", async () => {
+        /**
+         * BRIDGE FUNCTION: transliterate
+         * DESCRIPTION: Connects the HTML 'onkeyup' attribute to the JS logic.
+       */
+        async function transliterate() { {
             const val = input.value.split(" ").pop();
             if (!val || /[\u0B80-\u0BFF]/.test(val)) { sugBox.innerHTML = ""; return; }
             try {
